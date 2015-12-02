@@ -1,4 +1,22 @@
-#will it work?
+import numpy as np
 import pandas as pd
-f=pd.read_csv('Data.csv',sep='\;',quotechar='\"')
-f.columns = f.columns.str.strip().str.lower().str.rstrip('\"').str.lstrip('\"') # removes quotation marks from column names
+
+
+f=pd.read_csv('LMY.csv', engine='python', na_values=['..'])
+print(f)
+f.columns = f.columns.str.strip().str.lower().str.rstrip('\"').str.lstrip('\"')
+f=f.fillna(0)
+print(f)
+print(f.info())
+for i in range(len(f.columns)):
+    for j in range(len(f.index)):
+        if f.iloc[j][i]=='..'or f.iloc[j][i]=='-':
+            f.iloc[j][i]=0
+f=f.convert_objects(convert_numeric=True)
+f.index=f['industry'].str.strip().str.lower()
+print(f.index)
+ratio_to_total = f.loc[:,'1963':]/f.loc['total','1963':]
+print(ratio_to_total)
+
+
+
