@@ -1,2 +1,3 @@
 #will it work?
+import pandas as pd
 f=pd.read_csv('Data.csv',sep='\;',quotechar='\"')
