@@ -1,0 +1,37 @@
+import csv
+import math
+import statistics
+
+infile = 'VIS01106.csv'
+
+hofudborgEinbyli = []
+hofudborgFjolbyli = []
+landsbyggd = []
+alltLandid = []
+
+with open(infile) as csvfile:
+	reader = csv.reader(csvfile,delimiter=';')
+	for row in reader:
+		print(' '.join(row))
+		try:
+			hofudborgEinbyli.append(float(row[2]))
+			hofudborgFjolbyli.append(float(row[3]))
+			landsbyggd.append(float(row[4]))
+			alltLandid.append(float(row[5]))
+		except:
+			pass
+dHofudbEinb = []
+dHofudbFjolb = []
+dLandsb = []
+dAlltLand = []
+
+for i in range(0,len(hofudborgEinbyli)-1):
+	dHofudbEinb.append(math.log(hofudborgEinbyli[i+1]/hofudborgEinbyli[i]))
+	dHofudbFjolb.append(math.log(hofudborgFjolbyli[i+1]/hofudborgFjolbyli[i]))
+	dLandsb.append(math.log(landsbyggd[i+1]/landsbyggd[i]))
+	dAlltLand.append(math.log(alltLandid[i+1]/alltLandid[i]))
+
+print('DELTA Höfuðborg Einbýli\n',statistics.mean(dHofudbEinb)*12*100)
+print('DELTA Höfuðborg Fjölbýli\n',statistics.mean(dHofudbFjolb)*12*100)
+print('DELTA Landsbyggð\n',statistics.mean(dLandsb)*12*100)
+print('DELTA Allt landið\n',statistics.mean(dAlltLand)*12*100)
