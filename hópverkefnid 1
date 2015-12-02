@@ -1,3 +1,4 @@
 #will it work?
 import pandas as pd
 f=pd.read_csv('Data.csv',sep='\;',quotechar='\"')
+f.columns = f.columns.str.strip().str.lower().str.rstrip('\"').str.lstrip('\"') # removes quotation marks from column names
