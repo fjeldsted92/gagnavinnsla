@@ -1,3 +1,12 @@
-#will it work?
-import pandas as pd
-f=pd.read_csv('Data.csv',sep='\;',quotechar='\"')
+tt=pandas.read_csv('LMY.csv',sep='\;',engine='python')
+
+
+for i in range(37):
+    for j in range(213):
+        if tt.iloc[j,i]=="-" or tt.iloc[j,i]=="..":
+            tt.iloc[j,i]=0
+tt=tt.convert_objects(convert_numeric=True)      
+for i in range(1,37):
+    for j in range(213):
+        tt.iloc[j,i]=tt.iloc[j,i]/tt.iloc[212,i]
+print(tt)
