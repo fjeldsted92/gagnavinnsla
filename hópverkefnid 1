@@ -1,2 +1,2 @@
 #will it work?
-print(hello world)
+f=pd.read_csv('Data.csv',sep='\;',quotechar='\"')
