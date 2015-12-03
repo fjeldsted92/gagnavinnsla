@@ -1,6 +1,5 @@
-import numpy as np
 import pandas as pd
-import matplotlib as matplot 
+import matplotlib.pyplot as plt
 
 frames = []
 files =['WI.csv','CPI.csv','Housing.csv']
@@ -8,15 +7,14 @@ files =['WI.csv','CPI.csv','Housing.csv']
 #les gögn úr mörgum skjölum inn í 1 DataFrame.
 #Gögnin verða að vera á formatinu 'Year' 'Month' 'Data', raðað eftir dálkum
 for f in files:
-    frames.append(pd.read_csv(f, engine='python',na_values = '.',index_col = [0,1]))
+    frames.append(pd.read_csv(f, engine='python',na_values = ['.','...'],index_col = [0,1]))
 result=pd.concat(frames, axis = 1, join='outer')
-print(result.xs('January', level=1))  #notað til að ná í mánaðargildi
-print(result.xs(2015, level=0))        #notað til að ná í ársgildi, ath að árin eru int
 t = result.rename(columns={'Indices': 'Wages'})    #Notað til að skýra dálka upp á nýtt, býr til nýjan dataframe
-t.rename(columns={'Consumer price index less housing cost Index' : 'CPILH '}, inplace = True) #Skýrir dálkinn upp á nýtt, býr ekki til nýjan
+t.rename(columns={'Consumer price index less housing cost Index' : 'CPILH'}, inplace = True) #Skýrir dálkinn upp á nýtt, býr ekki til nýjan
 t.rename(columns={'Consumer price index Index' : 'CPI'}, inplace = True)
-t.rename(columns={'BOB' : 'kkk'}, inplace = True)
-print(t.columns)
+t.rename(columns={'multi-flat, capital area' : 'Rvk fjol'}, inplace = True)
+t.rename(columns={'Capital area' : 'Rvk'}, inplace = True)
+t.rename(columns={'single-flat houses, outside capital' : 'Dreifbyli, einb'}, inplace = True)
 col_len = len(t.columns)
 
 t = t.dropna()            #droppum línum með NaN
@@ -31,8 +29,6 @@ def MoM_pct_change(a,b):
     return
 
 MoM_pct_change(t.columns,col_len)
-print(t.columns)
-
 
 #N: YoY_pct_change(pd.DataFrame.columns a, int b)
 #F: a is columns of pandas dataframe t, b is number of columns in a to be operated on
@@ -43,8 +39,6 @@ def YoY_pct_change(a,b):
     return
 
 YoY_pct_change(t.columns,col_len)
-print(t.columns)
-print(t['Wages_YoY'])
 
 #N: cum_ind_change(pd.DataFrame.columns a, int b)
 #F: a is columns of pandas dataframe t, b is number of columns in a to be operated on
@@ -56,5 +50,35 @@ def cum_ind_change(a,b):
 
 cum_ind_change(t.columns,col_len)
 
-k = pd.DataFrame(t.ix[:,'Wages_MoM':'total_MoM']) #notað til að gera nýjan dataframe til að reikna corr
-print(k.corr())
+monthly_Corr = pd.DataFrame(t.ix[:,'Wages_MoM':'total_MoM'])
+print(monthly_Corr.corr())
+
+yearly_Corr =  pd.DataFrame(t.ix[:,'Wages_YoY':'total_YoY'])
+print(yearly_Corr.corr())
+
+total_Corr = pd.DataFrame(t.ix[:,'Wages_total_change':'total_total_change'])
+print(total_Corr.corr())
+
+
+print('-------------------------------------------')
+plt.figure()
+plt.subplot(2,1,1)
+mynd1_1 = t['Wages_total_change'].plot()
+mynd1_2 = t['CPI_total_change'].plot()
+mynd1_3 = t['CPILH_total_change'].plot()
+plt.legend(loc='upper left')
+plt.subplot(2,1,2)
+mynd1_4 = t['Rvk_total_change'].plot()
+mynd1_5 = t['Rvk fjol_total_change'].plot()
+mynd61_6 = t['Dreifbyli, einb_total_change'].plot()
+
+plt.legend(loc='upper left')
+plt.show()
+
+plt.figure()
+mynd2_1 = t['Wages_MoM'].plot()
+mynd2_2 = t['CPI_MoM'].plot()
+mynd2_3 = t['CPILH_MoM'].plot()
+
+plt.legend(loc='upper left')
+plt.show()
