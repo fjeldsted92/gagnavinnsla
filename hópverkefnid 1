@@ -56,6 +56,5 @@ def cum_ind_change(a,b):
 
 cum_ind_change(t.columns,col_len)
 
-k = t[t.columns[0:col_len]] #new dataframe from columns 0 - col_len in t
+k = pd.DataFrame(t.ix[:,'Wages_MoM':'total_MoM']) #notað til að gera nýjan dataframe til að reikna corr
 print(k.corr())
-
