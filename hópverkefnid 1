@@ -1,27 +1,9 @@
 import numpy as np
 import pandas as pd
+import matplotlib as matplot 
 
 frames = []
-files =['WI.csv','CPI.csv']
-for f in files:
-    frames.append(pd.read_csv(f, engine='python',na_values = '.',index_col = [0,1]))
-result=pd.concat(frames, axis = 1, join='outer')
-print(result.xs('January', level=1))  #notað til að ná í mánaðargildi
-print(result.xs(2015, level=0))        #notað til að ná í ársgildi, ath að árin eru int
-t = result.rename(columns={'Indices': 'Wages'})    #Notað til að skýra dálka upp á nýtt, býr til nýjan dataframe
-t.rename(columns={'Consumer price index less housing cost Index' : 'CPILH '}, inplace = True) #Skýrir dálkinn upp á nýtt, býr ekki til nýjan
-t.rename(columns={'Consumer price index Index' : 'CPI'}, inplace = True)
-print(t.columns)
-col_len = len(t.columns)
-t = t.dropna()
-
-
-#N: MoM_pct_change(DataFrame.columns a,  int b)
-import numpy as np
-import pandas as pd
-
-frames = []
-files =['WI.csv','CPI.csv']
+files =['WI.csv','CPI.csv','Housing.csv']
 
 #les gögn úr mörgum skjölum inn í 1 DataFrame.
 #Gögnin verða að vera á formatinu 'Year' 'Month' 'Data', raðað eftir dálkum
@@ -33,6 +15,7 @@ print(result.xs(2015, level=0))        #notað til að ná í ársgildi, ath að
 t = result.rename(columns={'Indices': 'Wages'})    #Notað til að skýra dálka upp á nýtt, býr til nýjan dataframe
 t.rename(columns={'Consumer price index less housing cost Index' : 'CPILH '}, inplace = True) #Skýrir dálkinn upp á nýtt, býr ekki til nýjan
 t.rename(columns={'Consumer price index Index' : 'CPI'}, inplace = True)
+t.rename(columns={'BOB' : 'kkk'}, inplace = True)
 print(t.columns)
 col_len = len(t.columns)
 
@@ -72,5 +55,7 @@ def cum_ind_change(a,b):
     return
 
 cum_ind_change(t.columns,col_len)
-k = t[t.columns[0:col_len+6]]
+
+k = t[t.columns[0:col_len]] #new dataframe from columns 0 - col_len in t
 print(k.corr())
+
