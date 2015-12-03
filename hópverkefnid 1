@@ -17,7 +17,30 @@ t = t.dropna()
 
 
 #N: MoM_pct_change(DataFrame.columns a,  int b)
-#F: a is columns of pandas dataframe t, b = len(a)
+import numpy as np
+import pandas as pd
+
+frames = []
+files =['WI.csv','CPI.csv']
+
+#les gögn úr mörgum skjölum inn í 1 DataFrame.
+#Gögnin verða að vera á formatinu 'Year' 'Month' 'Data', raðað eftir dálkum
+for f in files:
+    frames.append(pd.read_csv(f, engine='python',na_values = '.',index_col = [0,1]))
+result=pd.concat(frames, axis = 1, join='outer')
+print(result.xs('January', level=1))  #notað til að ná í mánaðargildi
+print(result.xs(2015, level=0))        #notað til að ná í ársgildi, ath að árin eru int
+t = result.rename(columns={'Indices': 'Wages'})    #Notað til að skýra dálka upp á nýtt, býr til nýjan dataframe
+t.rename(columns={'Consumer price index less housing cost Index' : 'CPILH '}, inplace = True) #Skýrir dálkinn upp á nýtt, býr ekki til nýjan
+t.rename(columns={'Consumer price index Index' : 'CPI'}, inplace = True)
+print(t.columns)
+col_len = len(t.columns)
+
+t = t.dropna()            #droppum línum með NaN
+
+
+#N: MoM_pct_change(pd.DataFrame.columns a,  int b)
+#F: a is columns of pandas dataframe t, b is number of columns in a to be operated on
 #E: creates new columns in t with 1-period percentage changes, with _MoM appended to name.
 def MoM_pct_change(a,b):
     for i in a[0:b]:
@@ -28,14 +51,26 @@ MoM_pct_change(t.columns,col_len)
 print(t.columns)
 
 
-#N: YoY_pct_change(DataFrame.columns a, int b)
-#F: a is columns of pandas dataframe t, b = len(a)
+#N: YoY_pct_change(pd.DataFrame.columns a, int b)
+#F: a is columns of pandas dataframe t, b is number of columns in a to be operated on
 #E: creates new columns in t with 12-period percentage changes, with _YoY appended to name.
 def YoY_pct_change(a,b):
     for i in a[0:b]:
         t[i+'_YoY']=t[i].pct_change(periods=12)
     return
+
 YoY_pct_change(t.columns,col_len)
 print(t.columns)
 print(t['Wages_YoY'])
 
+#N: cum_ind_change(pd.DataFrame.columns a, int b)
+#F: a is columns of pandas dataframe t, b is number of columns in a to be operated on
+#E: creates new columns in t with the total difference between t[i][j] and t[i][0],which for index is total change compared to a new baseline t[i][0]
+def cum_ind_change(a,b):
+    for i in a[0:b]:
+         t[i+'_total_change']=t[i]-t[i][0]
+    return
+
+cum_ind_change(t.columns,col_len)
+print(t.columns)
+print(t.corr())
