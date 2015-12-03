@@ -72,5 +72,5 @@ def cum_ind_change(a,b):
     return
 
 cum_ind_change(t.columns,col_len)
-print(t.columns)
-print(t.corr())
+k = t[t.columns[0:col_len+6]]
+print(k.corr())
