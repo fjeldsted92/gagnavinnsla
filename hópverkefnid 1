@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas import ExcelWriter
 import numpy as np
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
@@ -50,26 +51,31 @@ def cum_ind_change(a,b):
     for i in a[0:b]:
          t[i+'_total_change']=t[i]-t[i][0]
     return
-
 cum_ind_change(t.columns,col_len)
 
-monthly_Corr = pd.DataFrame(t.ix[:,t.columns[col_len:2*col_len]])
-print(monthly_Corr.corr())
+monthly_Corr = pd.DataFrame(t.ix[:,t.columns[col_len:2*col_len]]).corr()
+yearly_Corr =  pd.DataFrame(t.ix[:,t.columns[2*col_len:3*col_len]]).corr()
+total_Corr = pd.DataFrame(t.ix[:,t.columns[3*col_len:4*col_len]]).corr()
+with ExcelWriter('correlation_tables.xlsx') as writer:
+    monthly_Corr.to_excel(writer, sheet_name='Sheet1')
+    yearly_Corr.to_excel(writer, sheet_name='Sheet2')
+    total_Corr.to_excel(writer, sheet_name='Sheet3')
 
-yearly_Corr =  pd.DataFrame(t.ix[:,t.columns[2*col_len:3*col_len]])
-print(yearly_Corr.corr())
 
-total_Corr = pd.DataFrame(t.ix[:,t.columns[3*col_len:4*col_len]])
-print(total_Corr.corr())
+# framkvæmum OLS regression á YoY flokkin, með síðasta dálkinn sem háða breytu
+# við byrjum með fyrsta YoY dálkinn, bætum við einum ´dalk í einu
+# við finnum öll möguleg módel í hverju skrefi
+# við fáum þá öll möguleg módel fyrir dálk 1, dálk 1 og 2, dálk 1 til dálk 3 osvfr
+
+
 
 t.dropna()
 regtestdataY = pd.DataFrame(t.ix[:,t.columns[3*col_len-1]])
 
-
 y = regtestdataY.dropna()
 models = list(range(col_len))
 goodmodels = list(range(col_len))
-
+# Við metum gæði módelsins með adjusted r^2, hærra = betra
 for z in range(1,col_len):
     regtestdataX = pd.DataFrame(t.ix[:,t.columns[2*col_len:2*col_len+z]])
     regtestdataX.dropna()
@@ -96,13 +102,22 @@ for z in range(1,col_len):
                 Rmax = model.rsquared_adj
                 best_model = model
 
-print(best_model.summary())
-print(Rmax)
-print(itcount)
+regwrite = open('models.txt','w')
 for z in list(range(col_len-1)):
     for i in range(len(models[z])):
-        print(models[z][i].summary())
-print(shape(models))
+        regwrite.write(models[z][i].summary().as_text())
+        regwrite.write('\n')
+regwrite.close()
+regwrite_2 = open('goodmodels.txt','w')
+for z in list(range(col_len-1)):
+    for i in range(len(goodmodels[z])):
+        regwrite_2.write(models[z][i].summary().as_text())
+        regwrite_2.write('\n')
+regwrite_2.close()
+regwrite_3 = open('bestmodel','w')
+regwrite_3.write(best_model.summary().as_text())
+regwrite_3.close()
+
 print('-------------------------------------------')
 plt.figure()
 plt.subplot(2,1,1)
