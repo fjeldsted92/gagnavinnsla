@@ -76,6 +76,8 @@ mynd6 = t['Dreifbyli, einb_total_change'].plot()
 plt.legend(loc='upper left')
 plt.show()
 
+t.to_csv('Nidurstodur.csv', sep=';')
+
 
 
 
