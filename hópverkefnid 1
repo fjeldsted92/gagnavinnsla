@@ -1,20 +1,23 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
+import itertools
 
-frames = []
-files =['WI.csv','CPI.csv','Housing.csv']
+s = []
+files =['WI.csv','CPI.csv','Housing.csv',]
 
 #les gögn úr mörgum skjölum inn í 1 DataFrame.
 #Gögnin verða að vera á formatinu 'Year' 'Month' 'Data', raðað eftir dálkum
 for f in files:
-    frames.append(pd.read_csv(f, engine='python',na_values = ['.','...'],index_col = [0,1]))
-result=pd.concat(frames, axis = 1, join='outer')
+    s.append(pd.read_csv(f, engine='python',na_values = ['.','...'],index_col = [0,1]))
+result=pd.concat(s, axis = 1, join='outer' )
 t = result.rename(columns={'Indices': 'Wages'})    #Notað til að skýra dálka upp á nýtt, býr til nýjan dataframe
 t.rename(columns={'Consumer price index less housing cost Index' : 'CPILH'}, inplace = True) #Skýrir dálkinn upp á nýtt, býr ekki til nýjan
 t.rename(columns={'Consumer price index Index' : 'CPI'}, inplace = True)
 t.rename(columns={'multi-flat, capital area' : 'Rvk fjol'}, inplace = True)
 t.rename(columns={'Capital area' : 'Rvk'}, inplace = True)
-t.rename(columns={'single-flat houses, outside capital' : 'Dreifbyli, einb'}, inplace = True)
+t.rename(columns={'single-flat houses, outside capital' : 'Dreifbyli_einb'}, inplace = True)
 col_len = len(t.columns)
 
 t = t.dropna()            #droppum línum með NaN
@@ -42,7 +45,7 @@ YoY_pct_change(t.columns,col_len)
 
 #N: cum_ind_change(pd.DataFrame.columns a, int b)
 #F: a is columns of pandas dataframe t, b is number of columns in a to be operated on
-#E: creates new columns in t with the total difference between t[i][j] and t[i][0],which for index is total change compared to a new baseline t[i][0]
+#E: creates new columns in t with the difference between t[i][j] and t[i][0], which for an index is cumulative change compared to a new baseline t[i][0]
 def cum_ind_change(a,b):
     for i in a[0:b]:
          t[i+'_total_change']=t[i]-t[i][0]
@@ -50,16 +53,56 @@ def cum_ind_change(a,b):
 
 cum_ind_change(t.columns,col_len)
 
-monthly_Corr = pd.DataFrame(t.ix[:,'Wages_MoM':'total_MoM'])
+monthly_Corr = pd.DataFrame(t.ix[:,t.columns[col_len:2*col_len]])
 print(monthly_Corr.corr())
 
-yearly_Corr =  pd.DataFrame(t.ix[:,'Wages_YoY':'total_YoY'])
+yearly_Corr =  pd.DataFrame(t.ix[:,t.columns[2*col_len:3*col_len]])
 print(yearly_Corr.corr())
 
-total_Corr = pd.DataFrame(t.ix[:,'Wages_total_change':'total_total_change'])
+total_Corr = pd.DataFrame(t.ix[:,t.columns[3*col_len:4*col_len]])
 print(total_Corr.corr())
 
+t.dropna()
+regtestdataY = pd.DataFrame(t.ix[:,t.columns[3*col_len-1]])
 
+
+y = regtestdataY.dropna()
+models = list(range(col_len))
+goodmodels = list(range(col_len))
+
+for z in range(1,col_len):
+    regtestdataX = pd.DataFrame(t.ix[:,t.columns[2*col_len:2*col_len+z]])
+    regtestdataX.dropna()
+    Rmax = 0
+    goodmodels[z-1] = list(range(len(regtestdataX.columns)))
+    models[z-1] = []
+    loopcount = -1
+    for i in range(1,len(regtestdataX.columns)+1):
+        rlocalmax = 0
+        stringlist = list(itertools.combinations(regtestdataX.columns,i))
+        loopcount = loopcount+1
+        itcount = 0
+        for j in stringlist:
+            p = pd.DataFrame(regtestdataX.ix[:,j])
+            X=sm.add_constant(p.dropna())
+            model = sm.OLS(y,X).fit()
+            itcount = itcount +1
+            models[z-1].append(model)
+            print(itcount, i, j)
+            if model.rsquared_adj > rlocalmax:
+                rlocalmax = model.rsquared_adj
+                goodmodels[z-1][loopcount]=model
+            if model.rsquared_adj > Rmax:
+                Rmax = model.rsquared_adj
+                best_model = model
+
+print(best_model.summary())
+print(Rmax)
+print(itcount)
+for z in list(range(col_len-1)):
+    for i in range(len(models[z])):
+        print(models[z][i].summary())
+print(shape(models))
 print('-------------------------------------------')
 plt.figure()
 plt.subplot(2,1,1)
@@ -68,17 +111,36 @@ mynd1_2 = t['CPI_total_change'].plot()
 mynd1_3 = t['CPILH_total_change'].plot()
 plt.legend(loc='upper left')
 plt.subplot(2,1,2)
-mynd1_4 = t['Rvk_total_change'].plot()
-mynd1_5 = t['Rvk fjol_total_change'].plot()
-mynd61_6 = t['Dreifbyli, einb_total_change'].plot()
+mynd2_1 = t['Rvk_total_change'].plot()
+mynd2_1 = t['Rvk fjol_total_change'].plot()
+mynd2_1 = t['Dreifbyli_einb_total_change'].plot()
 
 plt.legend(loc='upper left')
 plt.show()
 
 plt.figure()
-mynd2_1 = t['Wages_MoM'].plot()
-mynd2_2 = t['CPI_MoM'].plot()
-mynd2_3 = t['CPILH_MoM'].plot()
+plt.subplot(2,1,1)
+mynd3_1 = t['Wages_MoM'].plot()
+mynd3_2 = t['CPI_MoM'].plot()
+mynd3_3 = t['CPILH_MoM'].plot()
+plt.legend(loc='upper left')
+plt.subplot(2,1,2)
+mynd4_1 = t['Wages_YoY'].plot()
+mynd4_2 = t['CPI_YoY'].plot()
+mynd4_3 = t['CPILH_YoY'].plot()
+plt.legend(loc='upper left')
+plt.show()
 
+plt.figure()
+mynd5_1 = t['Wages_total_change'].plot()
+mynd5_2 = t['total_total_change'].plot()
+mynd5_3 = t['Rvk_total_change'].plot()
+plt.legend(loc='upper left')
+plt.show()
+
+plt.figure()
+mynd6_1 = t['Rvk_YoY'].plot()
+mynd6_2 = t['Rvk fjol_YoY'].plot()
+mynd6_3 = t['Dreifbyli_einb_YoY'].plot()
 plt.legend(loc='upper left')
 plt.show()
