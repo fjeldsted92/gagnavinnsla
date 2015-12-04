@@ -5,23 +5,30 @@ import matplotlib.pyplot as plt
 import statsmodels.api as sm
 import itertools
 
+
+# Forritið les inn gögn úr .csv skrám og skilar útýmsum tölfræðilegum upplýsingum og gröfum,
+# og gerir einfalda línulega aðhvarfsgreiningu á hlutfallslegum breytingum milli ára
+# Skrárnar sem forritið les inn eiga að innihalda mánaðarleg gögn, merktum með mánuðum og árum.
+# Forritið getur lesið inn eins mikið af þannig gögnum og unnið með og beðið er um.
+# ----------------------------------------------------------------------------------
+
+# Skrárnar sem á að lesa inn, ef bæta á við skrá skal hún sett í listann.
+# Gögnin verða að vera á forminu 'Year', 'Month', 'Data1', 'Data2', 'Data3',...
+# ATH: Aðhvarfsgreiningin er framkvæmd með síðasta dálk sem lesinn er inn sem háða breytu.
 s = []
 files =['WI.csv','CPI.csv','Housing.csv',]
-
-#les gögn úr mörgum skjölum inn í 1 DataFrame.
-#Gögnin verða að vera á formatinu 'Year' 'Month' 'Data', raðað eftir dálkum
 for f in files:
     s.append(pd.read_csv(f, engine='python',na_values = ['.','...'],index_col = [0,1]))
 result=pd.concat(s, axis = 1, join='outer' )
-t = result.rename(columns={'Indices': 'Wages'})    #Notað til að skýra dálka upp á nýtt, býr til nýjan dataframe
-t.rename(columns={'Consumer price index less housing cost Index' : 'CPILH'}, inplace = True) #Skýrir dálkinn upp á nýtt, býr ekki til nýjan
+t = result.rename(columns={'Indices': 'Wages'})
+t.rename(columns={'Consumer price index less housing cost Index' : 'CPILH'}, inplace = True)
 t.rename(columns={'Consumer price index Index' : 'CPI'}, inplace = True)
 t.rename(columns={'multi-flat, capital area' : 'Rvk fjol'}, inplace = True)
 t.rename(columns={'Capital area' : 'Rvk'}, inplace = True)
 t.rename(columns={'single-flat houses, outside capital' : 'Dreifbyli_einb'}, inplace = True)
-col_len = len(t.columns)
+col_len = len(t.columns) #Notum col_len til að geyma upprunalegan fjölda dálka
 
-t = t.dropna()            #droppum línum með NaN
+t = t.dropna() #Losum okkur við þær línur, þ.e. þau tímabil, sem aðeins er til hluti gagna fyrir
 
 
 #N: MoM_pct_change(pd.DataFrame.columns a,  int b)
@@ -53,6 +60,7 @@ def cum_ind_change(a,b):
     return
 cum_ind_change(t.columns,col_len)
 
+# Skrifum fylgnifylki í excel-skjal
 monthly_Corr = pd.DataFrame(t.ix[:,t.columns[col_len:2*col_len]]).corr()
 yearly_Corr =  pd.DataFrame(t.ix[:,t.columns[2*col_len:3*col_len]]).corr()
 total_Corr = pd.DataFrame(t.ix[:,t.columns[3*col_len:4*col_len]]).corr()
@@ -62,12 +70,11 @@ with ExcelWriter('correlation_tables.xlsx') as writer:
     total_Corr.to_excel(writer, sheet_name='Sheet3')
 
 
+
 # framkvæmum OLS regression á YoY flokkin, með síðasta dálkinn sem háða breytu
 # við byrjum með fyrsta YoY dálkinn, bætum við einum ´dalk í einu
 # við finnum öll möguleg módel í hverju skrefi
 # við fáum þá öll möguleg módel fyrir dálk 1, dálk 1 og 2, dálk 1 til dálk 3 osvfr
-
-
 
 t.dropna()
 regtestdataY = pd.DataFrame(t.ix[:,t.columns[3*col_len-1]])
@@ -77,6 +84,7 @@ models = list(range(col_len))
 goodmodels = list(range(col_len))
 # Við metum gæði módelsins með adjusted r^2, hærra = betra
 for z in range(1,col_len):
+    #Veljum dálka inn í greinigarfylkið okkar
     regtestdataX = pd.DataFrame(t.ix[:,t.columns[2*col_len:2*col_len+z]])
     regtestdataX.dropna()
     Rmax = 0
@@ -84,17 +92,15 @@ for z in range(1,col_len):
     models[z-1] = []
     loopcount = -1
     for i in range(1,len(regtestdataX.columns)+1):
+        #förum í gegnum alla mögulegar samsetningar af combination(dálkar,i)
         rlocalmax = 0
         stringlist = list(itertools.combinations(regtestdataX.columns,i))
         loopcount = loopcount+1
-        itcount = 0
         for j in stringlist:
             p = pd.DataFrame(regtestdataX.ix[:,j])
             X=sm.add_constant(p.dropna())
             model = sm.OLS(y,X).fit()
-            itcount = itcount +1
             models[z-1].append(model)
-            print(itcount, i, j)
             if model.rsquared_adj > rlocalmax:
                 rlocalmax = model.rsquared_adj
                 goodmodels[z-1][loopcount]=model
@@ -125,37 +131,47 @@ mynd1_1 = t['Wages_total_change'].plot()
 mynd1_2 = t['CPI_total_change'].plot()
 mynd1_3 = t['CPILH_total_change'].plot()
 plt.legend(loc='upper left')
+plt.title('Mynd 1.1')
 plt.subplot(2,1,2)
 mynd2_1 = t['Rvk_total_change'].plot()
 mynd2_1 = t['Rvk fjol_total_change'].plot()
 mynd2_1 = t['Dreifbyli_einb_total_change'].plot()
-
+plt.title('Mynd 1.2')
 plt.legend(loc='upper left')
-plt.show()
 
 plt.figure()
 plt.subplot(2,1,1)
 mynd3_1 = t['Wages_MoM'].plot()
 mynd3_2 = t['CPI_MoM'].plot()
 mynd3_3 = t['CPILH_MoM'].plot()
+plt.title('Mynd 2.1')
 plt.legend(loc='upper left')
 plt.subplot(2,1,2)
 mynd4_1 = t['Wages_YoY'].plot()
 mynd4_2 = t['CPI_YoY'].plot()
 mynd4_3 = t['CPILH_YoY'].plot()
 plt.legend(loc='upper left')
-plt.show()
+plt.title('Mynd 2.2')
 
 plt.figure()
 mynd5_1 = t['Wages_total_change'].plot()
 mynd5_2 = t['total_total_change'].plot()
 mynd5_3 = t['Rvk_total_change'].plot()
 plt.legend(loc='upper left')
-plt.show()
+plt.title('Mynd 3')
 
 plt.figure()
 mynd6_1 = t['Rvk_YoY'].plot()
 mynd6_2 = t['Rvk fjol_YoY'].plot()
 mynd6_3 = t['Dreifbyli_einb_YoY'].plot()
 plt.legend(loc='upper left')
+plt.title('Mynd 4')
+
+plt.figure()
+mynd7_1 = t['Rvk_YoY'].plot()
+mynd7_2 = t['Rvk fjol_YoY'].plot()
+mynd7_3 = t['Dreifbyli_einb_YoY'].plot()
+mynd7_4 = t['CPILH_YoY'].plot()
+plt.legend(loc='upper left')
+plt.title('Mynd 5')
 plt.show()
