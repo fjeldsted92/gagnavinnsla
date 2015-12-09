@@ -1,1 +1,88 @@
+#BACK END SKRÁIN
 
+import psycopg2
+import getpass
+
+skra=open('movies.dat')
+Skra2=open('ratings.dat')
+
+Movpre=skra.read()
+skra.close()
+Movpre=Movpre.replace('\n','::')
+Movpost=Movpre.split('::')
+
+Ratpre=Skra2.read()
+Skra2.close()
+Ratpre=Ratpre.replace('\n','::')
+Ratpre=Ratpre.split('::')
+
+
+
+title=[]
+mid=[]
+tegund=[]
+
+Rmid=[]
+Rating=[]
+userid=[]
+timestamp=[]
+Ar=[]
+A=0
+B=0
+while (A+2) < (len(Movpost)):
+    mid.append(int(Movpost[A]))
+    Z=Movpost[A+1]
+    Z=Z.replace('(',' ').replace(')',' ').strip(' ')
+    Z=Z.rsplit(' ',1)
+    Y=Z[0]
+    Y=Y.strip(' ').strip(' ').strip(' ')
+    X=Z[1]
+    
+    title.append(Y)
+    Ar.append(X)
+    tegund.append(Movpost[2+A])
+    A=A+3
+
+while (B+4) <(len(Ratpre)):
+    userid.append(int(Ratpre[0+B]))
+    Rmid.append(int(Ratpre[1+B]))
+    Rating.append(int(Ratpre[2+B]))
+    timestamp.append(Ratpre[3+B])
+    B=B+4
+
+
+#kóði  from Eyjo
+host = 'localhost'
+dbname = input('Database name: ') # 'gavi'
+
+username = input('User name for {}.{}: '.format(host,dbname))  # 'postgres'
+pw = getpass.getpass()  # 'postgres'
+
+conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, username, pw)
+
+print("Connecting to database {}.{} as {}".format(host, dbname, username))
+
+conn = psycopg2.connect(conn_string)
+
+cursor = conn.cursor()
+    
+print("Connected!\n")
+
+cursor.execute("CREATE TABLE Movies(movieid int, name varchar(250),year int, tegund varchar(250), primary key (movieid));")
+
+for i in range(len(mid)):
+    Sql="insert into movies (movieid, name,year, tegund) values(%s, %s, %s,%s)"
+    Data = (mid[i],title[i],Ar[i],tegund[i])
+    cursor.execute(Sql,Data)
+conn.commit()
+cursor.execute("CREATE TABLE Ratings(userid int, movieid int, rating int, time_stamp varchar(250),primary key (movieid ,userid, time_stamp,rating), FOREIGN KEY(movieid) REFERENCES Movies(movieid));")
+
+for i in range(len(Rmid)):
+    SQL="insert into Ratings (userid ,movieid, rating, time_stamp) values(%s, %s, %s, %s)"
+    Data = (userid[i],Rmid[i],Rating[i],timestamp[i])
+    cursor.execute(SQL,Data)
+
+conn.commit()
+
+cursor.close()
+conn.close()
