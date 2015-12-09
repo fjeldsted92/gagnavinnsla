@@ -1,0 +1,71 @@
+#Skrá sem Tekur gögninn og kemur þeim á form til að henda inn í gagnagrunn. fyrir öll gögnin, kommenta út 
+import psycopg2
+import getpass
+import  csv
+skra=open('movies.dat')
+Skra2=open('ratings.dat')
+
+Movpre=skra.read()
+skra.close()
+Movpre=Movpre.replace('\n','::')
+Movpost=Movpre.split('::')
+
+Ratpre=Skra2.read()
+Skra2.close()
+Ratpre=Ratpre.replace('\n','::')
+Ratpre=Ratpre.split('::')
+
+
+
+title=[]
+mid=[]
+tegund=[]
+Movinfo=[[],[],[],[]]
+Ratinfo=[[],[],[],[]]
+
+Rmid=[]
+Rating=[]
+userid=[]
+timestamp=[]
+Ar=[]
+A=0
+B=0
+while (A+2) < (len(Movpost)):
+    mid.append(int(Movpost[A]))
+    Z=Movpost[A+1]
+    Z=Z.replace('(',' ').replace(')',' ').strip(' ')
+    Z=Z.rsplit(' ',1)
+    Y=Z[0]
+    Y=Y.strip(' ').strip(' ').strip(' ')
+    X=Z[1]
+    
+    title.append(Y)
+    Ar.append(X)
+    tegund.append(Movpost[2+A])
+    A=A+3
+
+while (B+4) <(len(Ratpre)):
+    userid.append(int(Ratpre[0+B]))
+    Rmid.append(int(Ratpre[1+B]))
+    Rating.append(Ratpre[2+B])
+    timestamp.append(Ratpre[3+B])
+    B=B+4
+
+for i in range(len(mid)):
+    temp=[mid[i],title[i],Ar[i],tegund[i]]
+    Movinfo.append(temp)
+
+for i in range(len(Rmid)):
+    temp=[userid[i],Rmid[i],Rating[i],timestamp[i]]
+    Ratinfo.append(temp)
+
+
+F1=open('pmovies.csv','w')  
+F2=open('pdata.csv', 'w')
+
+R1=csv.writer(F1,delimiter ='/', lineterminator ='\n')  #ATH ÞARF AÐ OPNA SKRÁ í notepad og eyða whitespaces í upphafiskjals
+R2=csv.writer(F2,delimiter ='/',lineterminator ='\n') 
+R1.writerows(Movinfo)
+R2.writerows(Ratinfo)
+F1.close()
+F2.close()
