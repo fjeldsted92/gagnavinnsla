@@ -54,7 +54,7 @@ for i in range(len(Movieidsave)):
         del KL[Movieidsave[i]]
 
 F=sorted(KL,  key=KL.get, reverse=True)                                                         # Skilar F Lista sem er raðað eftir stærð value á hverjum lykkli
-Recc=[]                                                                                         #veljum 8 fyrstu stök ú F og hendum inn í prentum þau út
+Recc=[]                                                                                         #veljum 5 fyrstu stök ú F og hendum inn í prentum þau út
 for i in range(8):                                                                                
     cursor.execute("SELECT name FROM movies WHERE movieid = %(id)s", {'id':F[i]})               
     res=cursor.fetchone()
