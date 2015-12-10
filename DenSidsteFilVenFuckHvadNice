@@ -1,0 +1,69 @@
+import psycopg2
+import getpass
+
+
+#kóði frá Eyjó notað til að tengjast Gagnagrunni
+host = 'localhost'
+dbname = input('Database name: ') # 
+
+username = input('User name for {}.{}: '.format(host,dbname))  # 'postgres'
+pw = getpass.getpass()  # 'postgres'
+
+conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, username, pw)
+
+print("Connecting to database {}.{} as {}".format(host, dbname, username))
+
+conn = psycopg2.connect(conn_string)
+
+cursor = conn.cursor()
+    
+print("Connected!\n")
+Movieidsave=[]
+for i in range(5):
+    Mp=input('Sláðu inn nafn á mynd %d: ' %(i+1))                                                         #Sláum inn nafn á mynd nær í movie id myndarinar og finnur alla notenda sem gefið hafa henni einkun.
+    cursor.execute("SELECT movieid FROM movies WHERE name ILIKE %(id)s", {'id': Mp} )
+    X=cursor.fetchone()
+    while X is None:
+        Mp=input('Mynd ekki í gagnagrunni eða nafn slegið inn vitlaust reyndu aftur: ')
+        cursor.execute("SELECT movieid FROM movies WHERE name ILIKE %(id)s", {'id': Mp} )
+        X=cursor.fetchone()
+    
+    Movieidsave.append(X[0])                                                                    #Geymum  Movie id þeirra mynda sem slegið er inn. notum seinna til 
+    cursor.execute("SELECT userid FROM ratings WHERE movieid = %(id)s",{'id':X[0]} )            #þess að prenta ekki út nöfn mynda sem voru sleginn inn.
+    res=cursor.fetchall()                                                                           
+    if i == 0:                                  #ef engir notendur hafa gefið báðum myndunum einkunn þá hentum við þeirri mynd sem sleginn er seina inn
+        B=set(res)                              #notum intersection til að bera saman lista notenda sem hafa gefið myndunum einkun og finnum sameiginlega notendur.
+    else :
+        if bool(B.intersection(res)): 
+            B=B.intersection(res)
+
+B=list(B)
+
+KL=dict()
+for i in range(len (B)):
+    cursor.execute("SELECT movieid, rating From ratings Where userid = %(id)s",{'id':B[i]})     #Fyrir hvern notenda sem gaf öllum myndunum einkun þá
+    res=cursor.fetchall()                                                                       #Finnum við allar myndir sem hann hefur gefið einkunn og
+                                                                                                #setjum inn upp dictonary þar sem key er movie id fyrir hverja mynd
+    for j in range(len(res)):                                                                   #og value er  samanlagðar ratings fyrir myndina út þýðinu.
+        if res[j][0] in KL:                                                                         
+            KL[res[j][0]]+=res[j][1]
+        else:
+            KL[res[j][0]]=res[j][1]
+for i in range(len(Movieidsave)):
+    if Movieidsave[i] in KL:
+        del KL[Movieidsave[i]]
+
+F=sorted(KL,  key=KL.get, reverse=True)                                                         # Skilar F Lista sem er raðað eftir stærð value á hverjum lykkli
+Recc=[]                                                                                         #veljum 8 fyrstu stök ú F og hendum inn í prentum þau út
+for i in range(5):                                                                                
+    cursor.execute("SELECT name FROM movies WHERE movieid = %(id)s", {'id':F[i]})               
+    res=cursor.fetchone()
+    Recc.append(res)
+
+print('Hefur þú áhuga á þessum myndum?  ')
+for i in range(len(Recc)):
+        print(Recc[i])
+
+
+cursor.close()
+conn.close()
