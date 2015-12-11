@@ -1,0 +1,20 @@
+--DATE--
+Location
+Date
+ID
+
+--GROUP--
+ID
+Nationality
+Attack type
+
+--CASUALTIES--
+Casualties
+Damages
+Target
+ID
+
+--COUNTRY--
+Country
+City
+ID
