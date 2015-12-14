@@ -1,0 +1,8 @@
+#50 mannskæðustu árásir 
+
+select t.nkill, l.city, l.iday, l.imonth, l.iyear,  a.gname
+from targets t, locations l, attacks a
+where t.eventid = l.eventid and t.eventid = a.eventid
+and t.nkill is not null
+order by t.nkill desc
+limit 50
