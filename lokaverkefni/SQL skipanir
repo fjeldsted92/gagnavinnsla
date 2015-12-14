@@ -1,0 +1,9 @@
+#50 mannskæðustu árásir
+
+
+select t.nkill as casulalities, l.city, l.iday, l.imonth, l.iyear,  a.gname as groupname, att.attacktype1_txt
+from targets t, locations l, attacks a, attackkey att
+where t.eventid = l.eventid and t.eventid = a.eventid and att.attacktype1 = a.attacktype1
+and t.nkill is not null
+order by t.nkill desc
+limit 50
