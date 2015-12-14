@@ -70,4 +70,11 @@ AND  t1.country = t2.country
 AND t3.nkill is NOT NULL
 ORDER BY t3.nkill desc LIMIT 10;
 
+#Sækja allar árásir breiddar- og lengdargráðu á ári x
+SELECT t1.latitude, t1.longitude
+FROM locations t1 IS NOT NULL
+WHERE t1.iyear = (%d) #fYRIR BREYTU Í PYTHON!
+AND t1.latitude IS NOT NULL
+AND t1.longitude IS NOT NULL;
+
 
