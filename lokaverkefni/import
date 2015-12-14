@@ -1,0 +1,65 @@
+import psycopg2
+import getpass
+import pandas as pd
+import numpy as np 
+
+reader = pd.read_excel('theDatabase.xlsx')
+print('Loaded!')
+print(len(reader['eventid']))
+print(len(reader['city']))
+
+
+
+
+
+host = 'localhost'
+dbname = input('Database name: ') # 'gavi'
+
+username = input('User name for {}.{}: '.format(host,dbname))  # 'postgres'
+pw = getpass.getpass()  # 'postgres'
+
+conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, username, pw)
+
+print("Connecting to database {}.{} as {}".format(host, dbname, username))
+
+conn = psycopg2.connect(conn_string)
+
+cursor = conn.cursor()
+    
+print("Connected!\n")
+
+cursor.execute("CREATE TABLE Country(Region varchar(250), Country varchar(250),City varchar(250), ID varchar(250), primary key (ID));")
+
+for i in range(len(reader['eventid'])):
+    Sql="INSERT INTO Country(Region, Country, City, ID) values(%s, %s, %s, %s)"
+    Data = (reader['region_txt'][i], reader['country_txt'][i], reader['city'][i], reader['eventid'][i])
+    cursor.execute(Sql,Data)
+conn.commit()
+
+cursor.execute("CREATE TABLE Group(ID varchar(250), Group_name varchar(250), Attack_type varchar(250),primary key (ID), FOREIGN KEY(ID));")
+
+for i in range(len(reader['eventid'])):
+    SQL="INSERT INTO Group(ID,Group_name, Attack_type) values(%s, %s, %s)"
+    Data = (reader['eventid'][i], reader['gname'][i], reader['attacktype1_txt'][i])
+    cursor.execute(SQL,Data)
+
+conn.commit()
+
+cursor.execute("CREATE TABLE Casualties(Casualties varchar(250), Damages varchar(250), Target varchar(250), ID varchar(250),primary key(ID), FOREIGN KEY (ID));")
+for i in range(len(reader['eventid'])):
+    SQL="INSERT INTO Group(Casualties, Damages, Target, ID) values(%s, %s, %s, %S)"
+    Data = (reader['nkill'][i], reader['propcomment'][i], reader['target1'][i], reader['eventid'][i])
+    cursor.execute(SQL,Data)
+
+conn.commit()
+
+cursor.execute("CREATE TABLE Location(Latitude varchar(250), Longitude varchar(250), ID varchar(250),primary key(ID), FOREIGN KEY (ID));")
+for i in range(len(reader['eventid'])):
+    SQL="INSERT INTO Group(Latitude, Longitude, ID) values(%s, %s, %s)"
+    Data = (reader['latitude'][i], reader['longitude'][i], reader['eventid'][i])
+    cursor.execute(SQL,Data)
+
+conn.commit()
+
+cursor.close()
+conn.close()
