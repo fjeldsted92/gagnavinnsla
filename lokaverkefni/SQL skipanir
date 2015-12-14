@@ -61,3 +61,13 @@ WHERE t.targtype1 = tk.targtype1
 GROUP BY tk.targtype1_txt
 order by count(t.target1) DESC
 limit 10
+
+#Lönd 10 mannskæðustu árása
+SELECT t1.country_txt,t3.nkill
+FROM countrykey t1, locations t2, targets t3
+WHERE t2.eventid = t3.eventid
+AND  t1.country = t2.country
+AND t3.nkill is NOT NULL
+ORDER BY t3.nkill desc LIMIT 10;
+
+
