@@ -1,0 +1,18 @@
+Sql commands
+#Primary keys
+alter table attacks add PRIMARY KEY (eventid)
+alter table attackkey add PRIMARY KEY (attacktype1)
+alter table comments add PRIMARY KEY (eventid)
+alter table countrykey add PRIMARY KEY (country)
+alter table locations add PRIMARY KEY (eventid)
+alter table targetkey add PRIMARY KEY (targtype1)
+alter table targsubkey add PRIMARY KEY (targsubtype1)
+alter table weaponkey add PRIMARY KEY (weaptype1)
+#Foreign keys
+alter table comments add FOREIGN KEY (eventid) REFERENCES attacks(eventid)
+alter table locations add FOREIGN KEY (eventid) REFERENCES attacks(eventid)
+alter table targets add FOREIGN KEY (eventid) REFERENCES attacks(eventid)
+alter table attacks add FOREIGN KEY (attacktype1) REFERENCES attackkey(attacktype1)
+alter table attacks add FOREIGN KEY (weaptype1) REFERENCES weaponkey(weaptype1)
+alter table targets add FOREIGN KEY (targtype1) REFERENCES targetkey(targtype1)
+alter table targets add FOREIGN KEY (targsubtype1) REFERENCES targsubkey(targsubtype1)
