@@ -1,4 +1,3 @@
-
 from mpl_toolkits.basemap import Basemap
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,9 +5,55 @@ from tkinter import *
 import pandas as pd
 import psycopg2
 import getpass
+def get_dates():
+    def Go():
+        a=entry1.get()
+        b=entry2.get()
+        print(a)
+        print(b)
+        toplevel.destroy()
 
+    toplevel = Toplevel()
+    label1 = Label(toplevel, text='Sláðu inn dagsetningar (DD:MM:YYYY)',width=40)
+    label1.pack()
+    entry1=Entry(toplevel)
+    entry1.pack()   
+    entry2=Entry(toplevel)
+    entry2.pack()
+
+    ut=Button(toplevel, text='ok', command =Go)
+    ut.pack()
+def get_country():
+    def Go():
+        a=entry1.get()
+        print(a)
+        toplevel.destroy()
+    toplevel = Toplevel()
+    label1 = Label(toplevel, text='veldu land',width=40)
+    label1.pack()
+    entry1=Entry(toplevel)
+    entry1.pack()
+    ut=Button(toplevel, text='ok', command =Go)
+    ut.pack()    
+
+def get_terr():
+    def Go():
+        a=entry1.get()
+        print(a)
+        toplevel.destroy()
+    toplevel = Toplevel()
+    label1 = Label(toplevel, text='Nafn á hriðjuverkasamtökum',width=40)
+    label1.pack()
+    entry1=Entry(toplevel)
+    entry1.pack()
+
+
+    ut=Button(toplevel, text='ok', command =Go)
+    ut.pack()    
 def leave():   
+
     root.destroy()
+
 def disconnect(conn,cursor):
     def leave_2():
         toplevel.destroy()
@@ -20,18 +65,6 @@ def disconnect(conn,cursor):
     label1.pack()
     ut=Button(toplevel, text='ok', command =leave_2)
     ut.pack()
-def get_beer(cursor):
-    def leave_2():
-        toplevel.destroy()
-    toplevel = Toplevel()
-    res=(cursor.execute("Select distinct manf from beers"))
-    print(cursor.fetchall())
-    print(type(res))
-    label1 = Label(toplevel, text='', height=100, width=100)
-    label1.pack()
-    ut=Button(toplevel, text='ok', command =leave_2)
-    ut.pack()
-
 def Connect():
 
     host = 'localhost'
@@ -105,10 +138,14 @@ def getstring():
 cursor,conn = Connect()
 
 root = Tk()
-root.geometry('400x400+500+300')
-root.title("Terrorism Database")
+root.geometry('300x200+50+30')
+root.title("")
 
-button1= Button(root, text= 'Plot1', command= getstring).grid(row=1, column=2)
-button2= Button(root, text='exit', command= leave).grid(row=1, column=3)
+button1= Button(root, text= 'Teikna', command= getstring).grid(row=1, column=2)
+button2= Button(root, text='exit', command= leave).grid(row=8, column=2)
+button3= Button(root, text='Skoða tímabil', command= get_dates).grid(row=3,column=4)
 button4= Button(root, text='aftengjast', command=lambda: disconnect(cursor,conn)).grid(row=1,column=5)
+button5= Button(root, text='Hriðjuverkasamtök', command=get_terr ).grid(row=3, column=5)
+button6= Button(root, text= 'Land', command=get_country).grid(row=3, column =6)
 root.mainloop()
+
