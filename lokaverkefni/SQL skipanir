@@ -23,7 +23,21 @@ where l.eventid = t.eventid and a.eventid = l.eventid and  t.eventid = 200109110
 
 
 
-10 mest notuð vopn
+#10 mest notuð vopn
+select DISTINCT w.weaptype1_txt as WeaponType, count(w.weaptype1)
+from attackkey att, weaponkey w, attacks a
+where w.weaptype1 = a.weaptype1 and w.weaptype1_txt not like '%Unknown%'
+GROUP BY w.weaptype1
+order by count(w.weaptype1) DESC
+limit 10
+
+#Allar sjálfsmorðssprengjur frá upphafi eftir árum
+select a.suicide,l.iyear
+from attacks a, locations l
+where a.eventid = l.eventid
+and a.suicide = 1
+
+#5 algegnustu attacktype
 select DISTINCT w.weaptype1_txt as WeaponType, count(w.weaptype1)
 from attackkey att, weaponkey w, attacks a
 where w.weaptype1 = a.weaptype1 and w.weaptype1_txt not like '%Unknown%'
