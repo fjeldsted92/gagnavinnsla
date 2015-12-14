@@ -10,12 +10,12 @@ engine = create_engine('postgresql://USERNAME:PASSWORD@localhost:5432/terrorism'
 locationdata= k[['eventid','iyear','imonth','iday','country','city','latitude','longitude']]
 attackdata = k[['eventid','gname','attacktype1','suicide','nperps','weaptype1','weapdetail']]
 targetdata = k[['eventid', 'targtype1', 'targsubtype1', 'target1', 'natlty1','nkill']]
-commentdata = k[['eventid','summary','motive','addnotes']]
-countrykeydata = k[['country','country_txt']].drop_duplicates()
-attackkeydata = k[['attacktype1', 'attacktype1_txt']].drop_duplicates()
-targetkeydata = k[['targtype1','targtype1_txt']].drop_duplicates()
-targsubkeydata = k[['targsubtype1','targsubtype1_txt']].drop_duplicates()
-weaponkeydata = k[['weaptype1','weaptype1_txt']].drop_duplicates()
+commentdata = k[['eventid','summary','motive','addnotes']].dropna()
+countrykeydata = k[['country','country_txt']].drop_duplicates().dropna()
+attackkeydata = k[['attacktype1', 'attacktype1_txt']].drop_duplicates().dropna()
+targetkeydata = k[['targtype1','targtype1_txt']].drop_duplicates().dropna()
+targsubkeydata = k[['targsubtype1','targsubtype1_txt']].drop_duplicates().dropna()
+weaponkeydata = k[['weaptype1','weaptype1_txt']].drop_duplicates().dropna()
 
 locationdata.to_sql('locations', engine, if_exists = 'replace', chunksize = 1000)
 attackdata.to_sql('attacks',engine,if_exists='replace',chunksize = 1000)
