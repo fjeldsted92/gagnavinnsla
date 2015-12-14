@@ -21,9 +21,13 @@ select l.eventid, t.nkill * 2 as TotalCasualities, l.city, a.gname
 from locations l, targets t, attacks a
 where l.eventid = t.eventid and a.eventid = l.eventid and  t.eventid = 200109110004
 
+
+
 10 mest notuð vopn
 select DISTINCT w.weaptype1_txt as WeaponType, count(w.weaptype1)
 from attackkey att, weaponkey w, attacks a
-where attacktype1_txt like '%armed%' and w.weaptype1 = a.weaptype1 and w.weaptype1_txt not like '%Unknown%'
-GROUP BY w.weaptype1 
+where w.weaptype1 = a.weaptype1 and w.weaptype1_txt not like '%Unknown%'
+GROUP BY w.weaptype1
 order by count(w.weaptype1) DESC
+limit 10
+
