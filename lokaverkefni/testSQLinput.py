@@ -4,7 +4,7 @@ import xlrd
 from sqlalchemy import create_engine
 k = pd.read_excel('terrorismtest.xlsx')
 
-engine = create_engine('postgresql://postgres:answer43@localhost:5432/terrorism')
+engine = create_engine('postgresql://username:password@localhost:5432/terrorism')
 
 
 locationdata= k[['eventid','iyear','imonth','iday','country','city','latitude','longitude']]
