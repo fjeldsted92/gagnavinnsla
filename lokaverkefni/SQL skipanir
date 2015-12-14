@@ -38,12 +38,26 @@ where a.eventid = l.eventid
 and a.suicide = 1
 
 #5 algegnustu attacktype
-select att.attacktype1_txt as AttackType, count(att.attacktype1_txt)
-from attackkey att, attacks a
-where att.attacktype1 = a.attacktype1 and att.attacktype1_txt not like '%Unknown%'
-group by att.attacktype1_txt
-order by count(att.attacktype1_txt) DESC
-limit 5
+select DISTINCT w.weaptype1_txt as WeaponType, count(w.weaptype1)
+from attackkey att, weaponkey w, attacks a
+where w.weaptype1 = a.weaptype1 and w.weaptype1_txt not like '%Unknown%'
+GROUP BY w.weaptype1
+order by count(w.weaptype1) DESC
+limit 10
 
+#10 virkustu grúppurnar
+select distinct a.gname, count(a.eventid)
+from attacks a
+where a.gname not like '%Unknown%'
+GROUP BY a.gname
+ORDER BY count(a.eventid) DESC
+limit 10
 
+# 10 algengustu targets
 
+select distinct tk.targtype1_txt TargetType, count(t.target1)
+from targets t, targetkey tk
+WHERE t.targtype1 = tk.targtype1
+GROUP BY tk.targtype1_txt
+order by count(t.target1) DESC
+limit 10
