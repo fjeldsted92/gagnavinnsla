@@ -30,24 +30,24 @@ def date_format_correcter(date1, date2):
     return date1hold, date2hold
 
 
-
 #N: f = pointdatacsv.csv
 #F: date1, date2 = "YYYY:MM:DD"
 #E: pointdatacsv.csv contains the selected data in csv format
 def point_file_write(date1, date2, cursoritem):
-    f = open('pointdatacsv.csv','w')
+    f = open('pointdatacsv.csv','w', encoding = 'utf8')
     date_a, date_b = date_format_correcter(date1, date2)
     k = point_Data_Get(date_a, date_b,cursoritem)
-    f.write('latitude, longitude, eventid, iyear, imonth, iday, country_txt, city, attacktype1_txt, suicide, gname, nperps, targtype1_txt, nkill\n')
+    f.write('latitude|longitude|eventid|iyear|imonth|iday|country_txt|city|attacktype1_txt|suicide|gname|nperps|targtype1_txt|nkill\n')
     for i in k:
         l = []
-        for j in range(14):
-            f.write(str(i[j])+',')
-        f.write('\n')   
+        for j in range(13):
+            f.write(str(i[j])+'|')
+        f.write(str(i[13]))
+        f.write('\n')
 
 
 
-def leave(conn,cursor):   
+def leave(conn,cursor):
     cursor.close()
     conn.close()
     root.destroy()
@@ -55,11 +55,11 @@ def leave(conn,cursor):
 def Connect():
 
     host = 'localhost'
-    dbname = 'gavi'
+    dbname = 'terrorism'
 
     username = 'postgres'
     #pw = getpass.getpass()
-    pw = 36543654
+    pw = 'answer43'
     conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, username, pw)
 
     print("Connecting to database {}.{} as {}".format(host, dbname, username))
@@ -72,9 +72,9 @@ def Connect():
     return cursor, conn
 
 def getstring():
-    
 
-    df = pd.read_csv('test.txt',)  
+
+    df = pd.read_csv('pointdatacsv.csv',sep = '|')
     fig = plt.figure(figsize=(20,10))
     ax = plt.axes()
     ax1 = plt.axes()
@@ -94,7 +94,7 @@ def getstring():
         horizontalalignment="left",
         arrowprops=dict(arrowstyle="simple",
                         connectionstyle="arc3,rad=-0.2"),
-        bbox=dict(boxstyle="round", facecolor="w", 
+        bbox=dict(boxstyle="round", facecolor="w",
                   edgecolor="0.5", alpha=0.9)
         )
         annotation = ax.annotate("Virka",
@@ -103,7 +103,7 @@ def getstring():
         horizontalalignment="left",
         arrowprops=dict(arrowstyle="simple",
                         connectionstyle="arc3,rad=-0.2"),
-        bbox=dict(boxstyle="round", facecolor="w", 
+        bbox=dict(boxstyle="round", facecolor="w",
                   edgecolor="0.5", alpha=0.9)
         )
     # by default, disable the annotation visibility
@@ -121,7 +121,7 @@ def getstring():
                 visibility_changed = True
                 annotation.set_visible(should_be_visible)
 
-            if visibility_changed:        
+            if visibility_changed:
                 plt.draw()
     def on_click(event):
         visibility_changed = False
@@ -132,12 +132,12 @@ def getstring():
                 visibility_changed = True
                 annotation1.set_visible(should_be_visible)
 
-            if visibility_changed:        
+            if visibility_changed:
                 plt.draw()
 
     on_move_id = fig.canvas.mpl_connect('motion_notify_event', on_move)
     on_click_id= fig.canvas.mpl_connect('button_press_event', on_click)
-    
+
     plt.show()
     return
 
@@ -151,16 +151,16 @@ root = Tk()
 root.geometry('350x200+50+30')
 root.title("")
 
-        
+
 to_date = StringVar()
 to_date.set("2001:10:11")
 from_date = StringVar()
 from_date.set("2000:10:11")
 Samtok= StringVar()
 Samtok.set("")
-#button1= Button(root, text= 'Teikna', command= getstring).grid(row=1, column=1)
+button1= Button(root, text= 'Teikna', command= getstring).grid(row=1, column=4)
 #button2= Button(root, text='exit', command= leave).grid(row=8, column=3)
-#button3= Button(root, text='Skoða tímabil', command= get_dates).grid(row=3,column=1) 
+#button3= Button(root, text='Skoða tímabil', command= get_dates).grid(row=3,column=1)
 #button5= Button(root, text='Hriðjuverkasamtök', command=get_terr ).grid(row=3, column=3)
 #button6= Button(root, text= 'Land', command=get_country).grid(row=4, column =3)
 #button7= Button(root, text='Borg', command= get_city).grid(row=4, column =2)
@@ -179,6 +179,6 @@ dates_confirm= Button(root, text='prof', command=lambda:point_file_write(from_da
 Label(root, text ='Hriðjuverkasamtök').grid(row=4)
 HVS=Entry(root,text =Samtok)
 HVS.grid(row= 4,column = 1)
-Set_HVS = Button(root, text = 'breyta', command= lambda: Samtok.set(HVS.get())).grid(row=4, column =2) 
+Set_HVS = Button(root, text = 'breyta', command= lambda: Samtok.set(HVS.get())).grid(row=4, column =2)
 
 root.mainloop()
