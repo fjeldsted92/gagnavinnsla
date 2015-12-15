@@ -19,10 +19,9 @@ def Connect():
 #F: date1, date2 = "yyyy:mm:yy"
 #E: returns selected data from database between dates date1 and date2
 def point_Data_Get(date1, date2,cursoritem):
-    cursoritem.execute("SELECT locations.eventid, locations.iyear, locations.imonth, locations.iday,  locations.city, locations.latitude, locations.longitude  FROM locations WHERE (locations.eventid BETWEEN (%s) AND (%s));", (date1, date2))
+    cursoritem.execute("SELECT  l.latitude, l.longitude, l.eventid, l.iyear, l.imonth, l.iday, ck.country_txt, l.city, ak.attacktype1_txt, a.suicide, a.gname, a.nperps,tk.targtype1_txt,t.nkill FROM locations l, attacks a, targets t, attackkey ak, targetkey tk, countrykey ck WHERE l.eventid = a.eventid AND l.eventid = t.eventid and t.targtype1 = tk.targtype1 and ck.country = l.country and ak.attacktype1 = a.attacktype1 and a.eventid BETWEEN (%s) AND (%s);",(date1,date2))
     c = cursoritem.fetchall()
     return c
-
 #N: date A, date B = date_format_correcter(date1,date2)
 #F: date1, date 2 er á formi 'YYYY:MM:DD'
 #E: date A , B eru á formi ´YYYYMMDD0000´ svo það virkar sem samanburður við eventid
@@ -41,17 +40,21 @@ def date_format_correcter(date1, date2):
 
 
 #N: f = pointdatacsv.csv
-#F: date1, date2 = "dd:mm:yyyy"
+#F: date1, date2 = "YYYY:MM:DD"
 #E: pointdatacsv.csv contains the selected data in csv format
 def point_file_write(date1, date2, cursoritem):
-    f= open('pointdatacsv.csv','w')
+    f = open('pointdatacsv.csv','w')
     date_a, date_b = date_format_correcter(date1, date2)
     k = point_Data_Get(date_a, date_b,cursoritem)
+    f.write('latitude, longitude, eventid, iyear, imonth, iday, country_txt, city, attacktype1_txt, suicide, gname, nperps, targtype1_txt, nkill\n')
     for i in k:
-        print(i)
-    f.close()
-a = '2011:11:12'
-b = '2011:12:12'
-print(date_format_correcter(a,b))
+        l = []
+        for j in range(14):
+            f.write(str(i[j])+',')
+        f.write('\n')
+        
+## for testing
+a = '2010:11:12'
+b = '2011:11:14'
 curs = Connect()
 point_file_write(a,b,curs)
