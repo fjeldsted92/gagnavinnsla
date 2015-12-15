@@ -1,0 +1,283 @@
+
+import matplotlib
+from mpl_toolkits.basemap import Basemap
+import numpy as np
+import matplotlib.pyplot as plt
+from tkinter import *
+import pandas as pd
+import psycopg2
+import getpass
+from pandas import ExcelWriter
+#N: Gets data form the database for dates between date 1 and date 2
+#F: date1, date2 = "yyyy:mm:yy"
+#E: returns selected data from database between dates date1 and date2
+
+
+def Everything(country, terrororg, tstart, tend):
+
+    if country is '':
+        country = "%%"
+
+    if terrororg is "''":
+        terrororg ="%%"
+    else:
+        terrororg = "%" + terrororg + "%"
+
+    if tstart is '':
+        tstart = 0
+    else:
+        tstart = single_date_corrector(tstart)
+
+    if tend is '':
+        tend = 999999999999
+
+    else:
+        tend = single_date_corrector(tend)
+
+    theSQLstring = """SELECT l.latitude, l.longitude, l.eventid, l.iyear, l.imonth, l.iday, ck.country_txt, l.city, ak.attacktype1_txt,a.suicide, a.gname,a.nperps, t.nkill, tk.targtype1_txt, w.weaptype1_txt, co.summary, co.motive, co.addnotes
+    FROM locations l,
+    countrykey ck,
+    comments co,
+    targets t,
+    targetkey tk,
+    attacks a,
+    attackkey ak,
+    weaponkey w
+	WHERE l.country = ck.country
+	AND l.eventid = co.eventid
+	AND l.eventid = t.eventid
+	AND l.eventid = a.eventid
+    AND a.attacktype1 = ak.attacktype1
+	AND a.weaptype1 = w.weaptype1
+    AND t.targtype1 = tk.targtype1
+	AND ck.country_txt ILIKE (%s)
+	AND a.gname ILIKE (%s)
+	AND l.eventid BETWEEN (%s)
+	AND (%s);"""
+    theData = (country, terrororg, tstart,tend)
+    print(theData)
+    cursor.execute(theSQLstring,theData)
+    info = cursor.fetchall()
+    return info
+
+#N: date A, date B = date_format_correcter(date1,date2)
+#F: date1, date 2 er á formi 'YYYY:MM:DD'
+#E: date A , B eru á formi ´YYYYMMDD0000´ svo það virkar sem samanburður við eventid
+def date_format_correcter(date1, date2):
+    date1hold = date1.split(sep = ':')
+    date1hold.append('0000')
+    date2hold = date2.split(sep = ':')
+    date2hold.append('0000')
+    date1hold = ''.join(date1hold)
+    date2hold = ''.join(date2hold)
+    return date1hold, date2hold
+
+def single_date_corrector(date1):
+    date1hold = date1.split(sep = ':')
+    date1hold.append('0000')
+    date1hold = ''.join(date1hold)
+    return date1hold
+
+
+def info_Excel(date1, date2,cursoritem):
+    a1, a2 = date_format_correcter(date1,date2)
+    cursor.execute("SELECT l.eventid, l.iyear, l.imonth, l.iday, ck.country_txt, l.city,l.latitude, l.longitude, ak.attacktype1_txt, tk.targtype1_txt, a.gname, t.nkill, a.nperps, a.suicide, su.summary, su.motive, su.addnotes FROM locations l, attacks a, targets t, attackkey ak, targetkey tk, countrykey ck, comments su WHERE l.eventid = a.eventid AND l.eventid = t.eventid and l.eventid = su.eventid and t.targtype1 = tk.targtype1 and ck.country = l.country and ak.attacktype1 = a.attacktype1 and a.eventid BETWEEN (%s) AND (%s);",(a1,a2))
+    df = pd.DataFrame(cursor.fetchall(), columns = ['eventid','iyear','imonth','iday','country_txt','city','latitude','longitude','attacktype1_txt','targtype1_txt','gname', 'nkill', 'nperps','suicide','summary','motive','addnotes'])
+    with ExcelWriter('info.xlsx') as writer:
+        df.to_excel(writer)
+
+#N: f = pointdatacsv.csv
+#F: date1, date2 = "YYYY:MM:DD"
+#E: pointdatacsv.csv contains the selected data in csv format
+def point_file_write(country,terrororg,date1, date2):
+    print(country, terrororg,date1,date2)
+    f = open('pointdatacsv.csv','w', encoding = 'utf8')
+    k = Everything(country,terrororg,date1, date2)
+    f.write('latitude|longitude|eventid|iyear|imonth|iday|country_txt|city|attacktype1_txt|suicide|gname|nperps|targtype1_txt|nkill|weaptype_txt|weapdetails\n')
+    for i in k:
+        for j in range(15):
+            f.write(str(i[j])+'|')
+        f.write(str(i[15]))
+        f.write('\n')
+
+def leave(conn,cursor):
+    cursor.close()
+    conn.close()
+    root.destroy()
+
+def Connect():
+
+    host = 'localhost'
+    dbname = 'terrorism'
+
+    username = 'postgres'
+    #pw = getpass.getpass()
+    pw = 'answer43'
+    conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, username, pw)
+
+    print("Connecting to database {}.{} as {}".format(host, dbname, username))
+
+    conn = psycopg2.connect(conn_string)
+
+    cursor = conn.cursor()
+
+    print("Connected!\n")
+    return cursor, conn
+
+
+def get_Stats():
+    f = pd.read_csv('pointdatacsv.csv', sep='|')
+    C=f["country_txt"].value_counts()
+    C2=C.index.tolist()
+    X=f["attacktype1_txt"].value_counts()
+    X2=X.index.tolist()
+    Z=f[f["gname"] !='Unknown']
+    Z=Z["gname"].value_counts()
+    Z2=Z.index.tolist()
+
+    tmp="Number of terrorist attacks in the period: "+ str(len(f)) +".\n"
+    tmp=tmp + "Most attacks happend in " +str(C2[0])+" a total of "+str(C[0])+ ".\n"
+    tmp=tmp + "The most active terror group was "+ str(Z2[0])+ ".\n"
+    tmp=tmp + "They where responisble for "+str(Z[0])+ " attacks. \n"
+    tmp=tmp + "The most common attack type was "+str(X2[0])+" with " + str(X[0])+" incidents."
+    return tmp
+def stats_window():
+    texti=get_Stats()
+    toplevel=Toplevel()
+    label1 = Label(toplevel, text=texti)
+    label1.pack()
+
+
+
+def getstring(c,t,a,b):
+    print(c,t,a,b)
+    point_file_write(c,t,a,b)
+    df = pd.read_csv('pointdatacsv.csv',sep = '|')
+    fig = plt.figure(figsize=(20,10))
+    ax = plt.axes()
+    ax1 = plt.axes()
+    map = Basemap(projection='gall',resolution = 'l',area_thresh = 100000.0,lat_0=0, lon_0=0)
+    map.drawcoastlines()
+    map.drawcountries()
+    map.fillcontinents(color = '#888888')
+    map.drawmapboundary(fill_color='#f4f4f4')
+    x,y = (map(df['longitude'].values, df['latitude'].values))
+    points_with_annotation2 = []
+    points_with_annotation = []
+    for i in range(len(x)):
+        point, = map.plot(x[i], y[i], 'ro', markersize=6)
+        annotation2_string = (df['country_txt'][i],df['iyear'][i],df['imonth'][i],df['iday'][i],df['gname'][i],df['targtype1_txt'][i],df['nkill'][i])
+        annotation1=ax1.annotate(annotation2_string,
+        xy=(x[i], y[i]), xycoords='data',
+        xytext=(0.1,0.1), textcoords='figure fraction',
+        horizontalalignment="left",
+        arrowprops=dict(arrowstyle="simple",
+                        connectionstyle="arc3,rad=-0.2"),
+        bbox=dict(boxstyle="round", facecolor="w",
+                  edgecolor="0.5", alpha=0.9),
+        annotation_clip = False)
+        annotation_string = (df['attacktype1_txt'][i],df['iyear'][i],df['imonth'][i],df['iday'][i],df['gname'][i])
+        annotation = ax.annotate(annotation_string,
+        xy=(x[i], y[i]), xycoords='data',
+        xytext=(0.1,0.5), textcoords='figure fraction',
+        horizontalalignment="left",
+        arrowprops=dict(arrowstyle="simple",
+                        connectionstyle="arc3,rad=-0.2"),
+        bbox=dict(boxstyle="round", facecolor="w",
+                  edgecolor="0.5", alpha=0.9)
+        )
+    # by default, disable the annotation visibility
+        annotation.set_visible(False)
+        annotation1.set_visible(False)
+        points_with_annotation.append([point, annotation])
+        points_with_annotation2.append([point, annotation1])
+
+    def on_move(event):
+        visibility_changed = False
+        for point, annotation in points_with_annotation:
+            should_be_visible = (point.contains(event)[0] == True)
+
+            if should_be_visible != annotation.get_visible():
+                visibility_changed = True
+                annotation.set_visible(should_be_visible)
+
+            if visibility_changed:
+                plt.draw()
+    def on_click(event):
+        visibility_changed = False
+        for point, annotation1 in points_with_annotation2:
+            should_be_visible = (point.contains(event)[0] == True)
+
+            if should_be_visible != annotation1.get_visible():
+                visibility_changed = True
+                annotation1.set_visible(should_be_visible)
+
+            if visibility_changed:
+                plt.draw()
+
+    on_move_id = fig.canvas.mpl_connect('motion_notify_event', on_move)
+    on_click_id= fig.canvas.mpl_connect('button_press_event', on_click)
+    plt.show()
+    return
+
+
+
+
+
+cursor,conn = Connect()
+
+root = Tk()
+root.geometry('1000x1000+50+30')
+root.title("")
+
+
+to_date = StringVar()
+to_date.set("2001:10:11")
+from_date = StringVar()
+from_date.set("2000:10:11")
+Samtok= StringVar()
+Samtok.set("")
+V_Land=StringVar()
+V_Land.set("")
+Flimit= IntVar()
+Flimit.set(15)
+#button1= Button(root, text= 'Teikna', command= getstring).grid(row=1, column=1)
+#button2= Button(root, text='exit', command= leave).grid(row=8, column=3)
+#button3= Button(root, text='Skoða tímabil', command= get_dates).grid(row=3,column=1)
+#button5= Button(root, text='Hriðjuverkasamtök', command=get_terr ).grid(row=3, column=3)
+#button6= Button(root, text= 'Land', command=get_country).grid(row=4, column =3)
+#button7= Button(root, text='Borg', command= get_city).grid(row=4, column =2)
+#button8= Button(root, text='Mannskæðustu árásinar', command= get_deaths).grid(row=4, column =1)
+Label(root, text="Tímabil").grid(row=0, column = 1)
+Label(root, text="Frá:").grid(row=1)
+fra=Entry(root,text =from_date)
+fra.grid(row=1, column =1)
+Label(root, text="Til:").grid(row=2)
+fra_Update=Button(root, text='breyta', command=lambda: from_date.set(fra.get()))
+fra_Update.grid(row=1, column=2)
+til=Entry(root,text =to_date)
+til.grid(row=2, column = 1)
+til_Update=Button(root, text ='breyta', command=lambda:to_date.set(til.get())).grid(row = 2 , column =2)
+Label(root, text ='Hryðjuverkasamtök').grid(row=3, column = 1 )
+Label(root, text ='Nafn:').grid(row=4)
+HVS=Entry(root,text =Samtok)
+HVS.grid(row= 4,column = 1)
+Set_HVS = Button(root, text = 'breyta', command= lambda: Samtok.set(HVS.get())).grid(row=4, column =2)
+Label(root, text ="Land").grid(row=5,column = 1)
+Label(root, text ="Nafn: ").grid(row=6)
+Land=Entry(root, text=V_Land)
+Land.grid(row=6, column= 1)
+Set_Land=Button(root, text = 'breyta',command =lambda: V_Land.set(Land.get())).grid(row= 6, column =2)
+data_update= Button(root, text='Upfæra gögn', command=lambda:point_file_write(V_Land.get(),Samtok.get(),from_date.get(),to_date.get()) ).grid(row=7, column =1)
+dates_confirm= Button(root, text='Teikna', command=lambda:getstring(V_Land.get(),Samtok.get(),from_date.get(),to_date.get())).grid(row=7, column =2)
+Summary_create= Button(root, text='Excel', command=lambda:info_Excel(from_date.get(),to_date.get(),cursor)).grid(row=8, column =2)
+Stat=Button(root, text='Samantekt', command= stats_window).grid(row=10,column =4)
+
+Label(root, text ="N Banvænustu Árásirna").grid(row=9,column = 1)
+Label(root, text ="N = ").grid(row=10)
+
+Atta=Entry(root, text=Flimit)
+Atta.grid(row=10, column= 1)
+Set_Atta=Button(root, text = 'Finna',command =lambda: Flimit.set(Atta.get())).grid(row= 10, column =2)
+
+root.mainloop()
