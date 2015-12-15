@@ -1,0 +1,4 @@
+
+
+
+dates_confirm= Button(root, text='Upfæra gögn', command=lambda:point_file_write(from_date.get(),to_date.get(),cursor) ).grid(row=7, column =1)
