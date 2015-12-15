@@ -146,6 +146,43 @@ def stats_window():
     toplevel=Toplevel()
     label1 = Label(toplevel, text=texti)
     label1.pack()
+def attack_window(A,cursor):
+    toplevel=Toplevel()
+    toplevel.geometry('800x250')
+    saman=get_Attacks(A,cursor)
+    scrollbar = Scrollbar(toplevel)
+    scrollbar.pack(side=RIGHT, fill=Y)
+    listbox = Listbox(toplevel, width = 200)
+    listbox.pack(side=RIGHT, fill=BOTH)
+
+    for i in range(len(saman)):
+        listbox.insert(END, saman[i])
+
+    listbox.config(yscrollcommand=scrollbar.set)
+    scrollbar.config(command=listbox.yview)
+
+def get_Attacks(A,cursor):
+    sql="select t.nkill as casulalities, l1.country_txt, l.iday, l.imonth, l.iyear,  a.gname as groupname, att.attacktype1_txt from targets t, countrykey l1,locations l, attacks a, attackkey att where t.eventid = l.eventid and t.eventid = a.eventid and att.attacktype1 = a.attacktype1 and l1.country = l.country and t.nkill is not null order by t.nkill desc limit %(id)s"
+    cursor.execute(sql, {'id' : A})
+    res=cursor.fetchall()
+    name=[]
+    date=[]
+    country=[]
+    deaths = []
+    attack_type = []
+
+    for i in range(len(res)):
+        name.append(res[i][5])
+        deaths.append(res[i][0])
+        country.append(res[i][1])
+        attack_type.append(res[i][6])
+        tmp= str(res[i][2])+':' +str(res[i][3])+':' +str(res[i][4])
+        date.append(tmp)
+    tmp2=[]
+    for i in range(len(name)):
+        tmp2.append(str(deaths[i])+" killed by "+str(name[i]) + " in "+ str(country[i]) + " on "+ str(date[i]) + " in a " + str(attack_type[i]) +".")
+
+    return tmp2
 
 
 
@@ -166,7 +203,7 @@ def getstring(c,t,a,b):
     points_with_annotation = []
     for i in range(len(x)):
         point, = map.plot(x[i], y[i], 'ro', markersize=6)
-        annotation2_string = (df['country_txt'][i],df['iyear'][i],df['imonth'][i],df['iday'][i],df['gname'][i],df['targtype1_txt'][i],df['nkill'][i])
+        annotation2_string = (df['country_txt'][i],df['city'][i],df['targtype1_txt'][i],df['nkill'][i])
         annotation1=ax1.annotate(annotation2_string,
         xy=(x[i], y[i]), xycoords='data',
         xytext=(0.1,0.1), textcoords='figure fraction',
@@ -228,8 +265,7 @@ cursor,conn = Connect()
 
 root = Tk()
 root.geometry('1000x1000+50+30')
-root.title("")
-
+root.title("GlobalTerror")
 
 to_date = StringVar()
 to_date.set("2001:10:11")
@@ -278,6 +314,6 @@ Label(root, text ="N = ").grid(row=10)
 
 Atta=Entry(root, text=Flimit)
 Atta.grid(row=10, column= 1)
-Set_Atta=Button(root, text = 'Finna',command =lambda: Flimit.set(Atta.get())).grid(row= 10, column =2)
-
+Set_Atta=Button(root, text = 'stilla',command =lambda: Flimit.set(Atta.get())).grid(row= 10, column =2)
+Go_Atta = Button(root, text = 'Finna', command =lambda: attack_window(Flimit.get(),cursor)).grid(row=10 ,column =3)
 root.mainloop()
