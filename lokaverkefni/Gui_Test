@@ -1,3 +1,5 @@
+
+import matplotlib
 from mpl_toolkits.basemap import Basemap
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,6 +7,37 @@ from tkinter import *
 import pandas as pd
 import psycopg2
 import getpass
+def get_deaths():    
+    def Go():
+        a=entry1.get()        
+        print(a)
+        toplevel.destroy()
+
+    toplevel = Toplevel()
+    label1 = Label(toplevel, text='Top X mannskæðustu árásinar',width=40)
+    label1.pack()
+    entry1=Entry(toplevel)
+    entry1.pack()   
+
+    ut=Button(toplevel, text='ok', command =Go)
+    ut.pack()
+
+
+def get_city():    
+    def Go():
+        a=entry1.get()
+    
+        print(a)
+        toplevel.destroy()
+
+    toplevel = Toplevel()
+    label1 = Label(toplevel, text='Veldu Borg',width=40)
+    label1.pack()
+    entry1=Entry(toplevel)
+    entry1.pack()   
+
+    ut=Button(toplevel, text='ok', command =Go)
+    ut.pack()
 def get_dates():
     def Go():
         a=entry1.get()
@@ -90,17 +123,26 @@ def getstring():
     df = pd.read_csv('test.txt',)  
     fig = plt.figure(figsize=(20,10))
     ax = plt.axes()
+    ax1 = plt.axes()
     map = Basemap(projection='gall',resolution = 'l',area_thresh = 100000.0,lat_0=0, lon_0=0)
     map.drawcoastlines()
     map.drawcountries()
     map.fillcontinents(color = '#888888')
     map.drawmapboundary(fill_color='#f4f4f4')
     x,y = (map(df['longitude'].values, df['latitude'].values))
-
+    points_with_annotation2 = []
     points_with_annotation = []
     for i in range(len(x)):
         point, = map.plot(x[i], y[i], 'ro', markersize=6)
-
+        annotation1=ax1.annotate("prufa 2",
+        xy=(x[i], y[i]), xycoords='data',
+        xytext=(0,0), textcoords='data',
+        horizontalalignment="left",
+        arrowprops=dict(arrowstyle="simple",
+                        connectionstyle="arc3,rad=-0.2"),
+        bbox=dict(boxstyle="round", facecolor="w", 
+                  edgecolor="0.5", alpha=0.9)
+        )
         annotation = ax.annotate("Virka",
         xy=(x[i], y[i]), xycoords='data',
         xytext=(4000000,10000000), textcoords='data',
@@ -112,8 +154,9 @@ def getstring():
         )
     # by default, disable the annotation visibility
         annotation.set_visible(False)
+        annotation1.set_visible(False)
         points_with_annotation.append([point, annotation])
-
+        points_with_annotation2.append([point, annotation1])
 
     def on_move(event):
         visibility_changed = False
@@ -126,8 +169,21 @@ def getstring():
 
             if visibility_changed:        
                 plt.draw()
+    def on_click(event):
+        visibility_changed = False
+        for point, annotation1 in points_with_annotation2:
+            should_be_visible = (point.contains(event)[0] == True)
+
+            if should_be_visible != annotation1.get_visible():
+                visibility_changed = True
+                annotation1.set_visible(should_be_visible)
+
+            if visibility_changed:        
+                plt.draw()
 
     on_move_id = fig.canvas.mpl_connect('motion_notify_event', on_move)
+    on_click_id= fig.canvas.mpl_connect('button_press_event', on_click)
+    
     plt.show()
     return
 
@@ -138,14 +194,19 @@ def getstring():
 cursor,conn = Connect()
 
 root = Tk()
-root.geometry('300x200+50+30')
+root.geometry('350x200+50+30')
 root.title("")
 
-button1= Button(root, text= 'Teikna', command= getstring).grid(row=1, column=2)
-button2= Button(root, text='exit', command= leave).grid(row=8, column=2)
-button3= Button(root, text='Skoða tímabil', command= get_dates).grid(row=3,column=4)
-button4= Button(root, text='aftengjast', command=lambda: disconnect(cursor,conn)).grid(row=1,column=5)
-button5= Button(root, text='Hriðjuverkasamtök', command=get_terr ).grid(row=3, column=5)
-button6= Button(root, text= 'Land', command=get_country).grid(row=3, column =6)
+        
+
+button1= Button(root, text= 'Teikna', command= getstring).grid(row=1, column=1)
+button2= Button(root, text='exit', command= leave).grid(row=8, column=3)
+button3= Button(root, text='Skoða tímabil', command= get_dates).grid(row=3,column=1)
+button4= Button(root, text='aftengjast', command=lambda: disconnect(cursor,conn)).grid(row=1,column=2)
+button5= Button(root, text='Hriðjuverkasamtök', command=get_terr ).grid(row=3, column=3)
+button6= Button(root, text= 'Land', command=get_country).grid(row=4, column =3)
+button7= Button(root, text='Borg', command= get_city).grid(row=4, column =2)
+button8= Button(root, text='Mannskæðustu árásinar', command= get_deaths).grid(row=4, column =1)
 root.mainloop()
+
 
