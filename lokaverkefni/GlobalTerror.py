@@ -13,7 +13,7 @@ from pandas import ExcelWriter
 #E: returns selected data from database between dates date1 and date2
 
 
-def Everything(country, terrororg, tstart, tend):
+def Everything(country, terrororg, tstart, tend): # stór fall sem sem tekur inn tímabilið, land og hriðjuverkar samtökum og gerir SQl query
 
     if country is '':
         country = "%%"
@@ -79,7 +79,7 @@ def single_date_corrector(date1):
     return date1hold
 
 
-def info_Excel(date1, date2,cursoritem):
+def info_Excel(date1, date2,cursoritem): # prentar út Gögninn sem verið er að vinna með í excel
     a1, a2 = date_format_correcter(date1,date2)
     cursor.execute("SELECT l.eventid, l.iyear, l.imonth, l.iday, ck.country_txt, l.city,l.latitude, l.longitude, ak.attacktype1_txt, tk.targtype1_txt, a.gname, t.nkill, a.nperps, a.suicide, su.summary, su.motive, su.addnotes FROM locations l, attacks a, targets t, attackkey ak, targetkey tk, countrykey ck, comments su WHERE l.eventid = a.eventid AND l.eventid = t.eventid and l.eventid = su.eventid and t.targtype1 = tk.targtype1 and ck.country = l.country and ak.attacktype1 = a.attacktype1 and a.eventid BETWEEN (%s) AND (%s);",(a1,a2))
     df = pd.DataFrame(cursor.fetchall(), columns = ['eventid','iyear','imonth','iday','country_txt','city','latitude','longitude','attacktype1_txt','targtype1_txt','gname', 'nkill', 'nperps','suicide','summary','motive','addnotes'])
@@ -89,7 +89,7 @@ def info_Excel(date1, date2,cursoritem):
 #N: f = pointdatacsv.csv
 #F: date1, date2 = "YYYY:MM:DD"
 #E: pointdatacsv.csv contains the selected data in csv format
-def point_file_write(country,terrororg,date1, date2):
+def point_file_write(country,terrororg,date1, date2):   
     print(country, terrororg,date1,date2)
     f = open('pointdatacsv.csv','w', encoding = 'utf8')
     k = Everything(country,terrororg,date1, date2)
@@ -100,12 +100,12 @@ def point_file_write(country,terrororg,date1, date2):
         f.write(str(i[15]))
         f.write('\n')
 
-def leave(conn,cursor):
+def leave(conn,cursor): # fall sem aftengir frá gagnagrunni og lokar gui-inu
     cursor.close()
     conn.close()
     root.destroy()
 
-def Connect():
+def Connect(): # Fall frá eyjólfi sem tengir okkur við gagnagrunninn.
 
     host = 'localhost'
     dbname = 'terrorism'
@@ -125,7 +125,7 @@ def Connect():
     return cursor, conn
 
 
-def get_Stats():
+def get_Stats(): # fall sem sækir tölfræði upplýsingar fyrir tímabill og kemur þeim á string form
     f = pd.read_csv('pointdatacsv.csv', sep='|')
     C=f["country_txt"].value_counts()
     C2=C.index.tolist()
@@ -141,12 +141,12 @@ def get_Stats():
     tmp=tmp + "They where responisble for "+str(Z[0])+ " attacks. \n"
     tmp=tmp + "The most common attack type was "+str(X2[0])+" with " + str(X[0])+" incidents."
     return tmp
-def stats_window():
+def stats_window():   # gluggi fyrir Samantektar upplýsingar
     texti=get_Stats()
     toplevel=Toplevel()
     label1 = Label(toplevel, text=texti)
     label1.pack()
-def attack_window(A,cursor):
+def attack_window(A,cursor): # Gluggi fyrir top n banvænustu áráir
     toplevel=Toplevel()
     toplevel.geometry('800x250')
     saman=get_Attacks(A,cursor)
@@ -161,7 +161,7 @@ def attack_window(A,cursor):
     listbox.config(yscrollcommand=scrollbar.set)
     scrollbar.config(command=listbox.yview)
 
-def get_Attacks(A,cursor):
+def get_Attacks(A,cursor): # býr til textan til að setja inn í listan í attack_window
     sql="select t.nkill as casulalities, l1.country_txt, l.iday, l.imonth, l.iyear,  a.gname as groupname, att.attacktype1_txt from targets t, countrykey l1,locations l, attacks a, attackkey att where t.eventid = l.eventid and t.eventid = a.eventid and att.attacktype1 = a.attacktype1 and l1.country = l.country and t.nkill is not null order by t.nkill desc limit %(id)s"
     cursor.execute(sql, {'id' : A})
     res=cursor.fetchall()
@@ -186,22 +186,22 @@ def get_Attacks(A,cursor):
 
 
 
-def getstring(c,t,a,b):
+def getstring(c,t,a,b):  # stór fall sem teiknar upp kort af heiminum og teiknar interactive punkta á það.
     print(c,t,a,b)
     point_file_write(c,t,a,b)
     df = pd.read_csv('pointdatacsv.csv',sep = '|')
     fig = plt.figure(figsize=(20,10))
-    ax = plt.axes()
+    ax = plt.axes()		#tveir axes hlutir notaðir til að búa til anniontations
     ax1 = plt.axes()
     map = Basemap(projection='gall',resolution = 'l',area_thresh = 100000.0,lat_0=0, lon_0=0)
     map.drawcoastlines()
     map.drawcountries()
     map.fillcontinents(color = '#888888')
     map.drawmapboundary(fill_color='#f4f4f4')
-    x,y = (map(df['longitude'].values, df['latitude'].values))
+    x,y = (map(df['longitude'].values, df['latitude'].values))   # Lengdar og breiddargráðu breyt í x,y hnit fyrir viðeigandi vörpun
     points_with_annotation2 = []
     points_with_annotation = []
-    for i in range(len(x)):
+    for i in range(len(x)):	# forlykkja teiknar punktana, stuðst við kóða frá http://stackoverflow.com/questions/12576454/python-and-matplotlib-and-annotations-with-mouse-hover
         point, = map.plot(x[i], y[i], 'ro', markersize=6)
         annotation2_string = (df['country_txt'][i],df['city'][i],df['targtype1_txt'][i],df['nkill'][i])
         annotation1=ax1.annotate(annotation2_string,
@@ -229,7 +229,7 @@ def getstring(c,t,a,b):
         points_with_annotation.append([point, annotation])
         points_with_annotation2.append([point, annotation1])
 
-    def on_move(event):
+    def on_move(event): # fall sem skilgreinir hverning punkturinn hagar sér þeger músinn er sett á hann
         visibility_changed = False
         for point, annotation in points_with_annotation:
             should_be_visible = (point.contains(event)[0] == True)
@@ -240,7 +240,7 @@ def getstring(c,t,a,b):
 
             if visibility_changed:
                 plt.draw()
-    def on_click(event):
+    def on_click(event): # fall sem skilgreinir hverning punkturinn hagar sér þegar smellt er á hann
         visibility_changed = False
         for point, annotation1 in points_with_annotation2:
             should_be_visible = (point.contains(event)[0] == True)
@@ -262,11 +262,11 @@ def getstring(c,t,a,b):
 
 
 cursor,conn = Connect()
-
+#búum til Gui
 root = Tk()
 root.geometry('1000x1000+50+30')
 root.title("GlobalTerror")
-
+#Breytur sem notaðar eru til að geyma og geta breyt Entry reitunum
 to_date = StringVar()
 to_date.set("2001:10:11")
 from_date = StringVar()
@@ -277,13 +277,7 @@ V_Land=StringVar()
 V_Land.set("")
 Flimit= IntVar()
 Flimit.set(15)
-#button1= Button(root, text= 'Teikna', command= getstring).grid(row=1, column=1)
-#button2= Button(root, text='exit', command= leave).grid(row=8, column=3)
-#button3= Button(root, text='Skoða tímabil', command= get_dates).grid(row=3,column=1)
-#button5= Button(root, text='Hriðjuverkasamtök', command=get_terr ).grid(row=3, column=3)
-#button6= Button(root, text= 'Land', command=get_country).grid(row=4, column =3)
-#button7= Button(root, text='Borg', command= get_city).grid(row=4, column =2)
-#button8= Button(root, text='Mannskæðustu árásinar', command= get_deaths).grid(row=4, column =1)
+# Takkar og merkingar fyrir þá ef fallið sem takkinn kallar á þarf input breytur þá er lambda notað til þess að fallið keyri ekki sjálfkrafa þegar forritið er ræst
 Label(root, text="Tímabil").grid(row=0, column = 1)
 Label(root, text="Frá:").grid(row=1)
 fra=Entry(root,text =from_date)
