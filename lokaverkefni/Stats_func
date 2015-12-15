@@ -1,0 +1,23 @@
+def get_Stats():
+    f = pd.read_csv('pointdatacsv.csv', sep='|', encoding ='cp1252' )
+    C=f["country_txt"].value_counts()
+    C2=C.index.tolist()
+    X=f["attacktype1_txt"].value_counts()
+    X2=X.index.tolist()
+    Z=f[f["gname"] !='Unknown']
+    Z=Z["gname"].value_counts()
+    Z2=Z.index.tolist()
+    
+    tmp="Number of terrorist attacks in the period: "+ str(len(f)) +".\n"
+    tmp=tmp + "Most attacks happend in " +str(C2[0])+" a total of "+str(C[0])+ ".\n"
+    tmp=tmp + "The most active terror group was "+ str(Z2[0])+ ".\n"
+    tmp=tmp + "They where responisble for "+str(Z[0])+ " attacks. \n"
+    tmp=tmp + "The most common attack type was "+str(X2[0])+" with " + str(X[0])+" incidents." 
+    return tmp
+def stats_window():
+    texti=get_Stats()
+    toplevel=Toplevel()
+    label1 = Label(toplevel, text=texti)
+    label1.pack()
+    
+    Stat=Button(root, text='Samantekt', command= stats_window).grid(row=10,column =4)
