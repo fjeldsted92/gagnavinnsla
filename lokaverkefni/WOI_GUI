@@ -18,11 +18,8 @@ def point_Data_Get(date1, date2,cursoritem):
 #F: date1, date 2 er á formi 'YYYY:MM:DD'
 #E: date A , B eru á formi ´YYYYMMDD0000´ svo það virkar sem samanburður við eventid
 def date_format_correcter(date1, date2):
-    print(date1)
     date1hold = date1.split(sep = ':')
-    print(date1hold)
     date1hold.append('0000')
-    print(date1hold)
     date2hold = date2.split(sep = ':')
     date2hold.append('0000')
     date1hold = ''.join(date1hold)
@@ -88,7 +85,7 @@ def getstring():
     points_with_annotation = []
     for i in range(len(x)):
         point, = map.plot(x[i], y[i], 'ro', markersize=6)
-        annotation1=ax1.annotate("prufa 2",
+        annotation1=ax1.annotate((df['country_txt'][i],df['city'][i],df['attacktype1_txt'][i], df['iyear'][i], df['imonth'][i], df['iday'][i], df['nkill'][i]),
         xy=(x[i], y[i]), xycoords='data',
         xytext=(0,0), textcoords='data',
         horizontalalignment="left",
