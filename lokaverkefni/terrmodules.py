@@ -1,20 +1,5 @@
 import psycopg2
 
-def Connect():
-
-    host = 'localhost'
-    dbname = 'terrorism'
-
-    username = 'postgres'
-    #pw = getpass.getpass()
-    pw = 'answer43'
-    conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, username, pw)
-
-    print("Connecting to database {}.{} as {}".format(host, dbname, username))
-
-    conn = psycopg2.connect(conn_string)
-    curs = conn.cursor()
-    return curs
 #N: Gets data form the database for dates between date 1 and date 2
 #F: date1, date2 = "yyyy:mm:yy"
 #E: returns selected data from database between dates date1 and date2
@@ -53,8 +38,4 @@ def point_file_write(date1, date2, cursoritem):
             f.write(str(i[j])+',')
         f.write('\n')
         
-## for testing
-a = '2010:11:12'
-b = '2011:11:14'
-curs = Connect()
-point_file_write(a,b,curs)
+
