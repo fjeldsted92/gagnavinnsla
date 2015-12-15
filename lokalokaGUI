@@ -109,8 +109,7 @@ def Connect(): # Fall frá eyjólfi sem tengir okkur við gagnagrunninn.
     dbname = 'terrorism'
 
     username = 'postgres'
-    #pw = getpass.getpass()
-    pw = 'answer43'
+    pw = getpass.getpass() #USER PASSWORD
     conn_string = "host='{}' dbname='{}' user='{}' password='{}'".format(host, dbname, username, pw)
 
     print("Connecting to database {}.{} as {}".format(host, dbname, username))
@@ -300,11 +299,11 @@ dates_confirm= Button(root, text='Teikna', command=lambda:getstring(V_Land.get()
 Summary_create= Button(root, text='Excel', command=lambda:info_Excel(from_date.get(),to_date.get(),cursor)).grid(row=8, column =2)
 Stat=Button(root, text='Samantekt', command= stats_window).grid(row=10,column =4)
 
-Label(root, text ="N Banvænustu Árásirna").grid(row=9,column = 1)
+Label(root, text ="N Banvænustu Árásirnar").grid(row=9,column = 1)
 Label(root, text ="N = ").grid(row=10)
 
 Atta=Entry(root, text=Flimit)
 Atta.grid(row=10, column= 1)
-Set_Atta=Button(root, text = 'stilla',command =lambda: Flimit.set(Atta.get())).grid(row= 10, column =2)
+Set_Atta=Button(root, text = 'Stilla',command =lambda: Flimit.set(Atta.get())).grid(row= 10, column =2)
 Go_Atta = Button(root, text = 'Finna', command =lambda: attack_window(Flimit.get(),cursor)).grid(row=10 ,column =3)
 root.mainloop()
