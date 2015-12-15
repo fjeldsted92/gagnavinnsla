@@ -26,6 +26,12 @@ def date_format_correcter(date1, date2):
     date2hold = ''.join(date2hold)
     return date1hold, date2hold
 
+def info_Excel(date1, date2,cursoritem):
+    a1, a2 = date_format_correcter(date1,date2)
+    cursor.execute("SELECT l.eventid, l.iyear, l.imonth, l.iday, ck.country_txt, l.city,l.latitude, l.longitude, ak.attacktype1_txt, tk.targtype1_txt, a.gname, t.nkill, a.nperps, su.summary, su.motive, su.addnotes FROM locations l, attacks a, targets t, attackkey ak, targetkey tk, countrykey ck, comments su WHERE l.eventid = a.eventid AND l.eventid = t.eventid and l.eventid = su.eventid and t.targtype1 = tk.targtype1 and ck.country = l.country and ak.attacktype1 = a.attacktype1 and a.eventid BETWEEN (%s) AND (%s);",(a1,a2))
+    df = pd.DataFrame(cursor.fetchall(), columns = ['eventid','iyear','imonth','iday','country_txt','city','latitude','longitude','attacktype1_txt','targtype1_txt','gname', 'nkill', 'nperps','summary','motive','addnotes'])
+    with ExcelWriter('info.xlsx') as writer:
+        df.to_excel(writer)
 
 #N: f = pointdatacsv.csv
 #F: date1, date2 = "YYYY:MM:DD"
@@ -173,6 +179,7 @@ til=Entry(root,text =to_date)
 til.grid(row=2, column = 1)
 til_Update=Button(root, text ='breyta', command=lambda:to_date.set(til.get())).grid(row = 2 , column =2)
 dates_confirm= Button(root, text='prof', command=lambda:point_file_write(from_date.get(),to_date.get(),cursor) ).grid(row=3, column =1)
+Summary_create= Button(root, text='Excel', command=lambda:info_Excel(from_date.get(),to_date.get(),cursor)).grid(row=8, column =1)
 Label(root, text ='Hriðjuverkasamtök').grid(row=4)
 HVS=Entry(root,text =Samtok)
 HVS.grid(row= 4,column = 1)
