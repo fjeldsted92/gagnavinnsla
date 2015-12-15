@@ -21,6 +21,12 @@ cursor = conn.cursor()
     
 print("Connected!\n")
 
+def single_date_corrector(date1):
+    date1hold = date1.split(sep = ':')
+    date1hold.append('0000')
+    date1hold = ''.join(date1hold)
+    return date1hold
+
 def Country(theCountry):
 	#The function returns all the attacks in the country that the user puts in
 	sqlstring = """SELECT t1.eventid, t1.city, t3.summary, t4.nkill, t2.country_txt, t5.gname, t6.weaptype1_txt
@@ -44,6 +50,48 @@ def Country(theCountry):
 
 	return info
 
+def Everything(country, terrororg, tstart, tend):
 
+	if country == "''":
+		country = "%%"
+	
+	if terrororg == "''":
+		terrororg = "%%"
+
+	else:
+		terrororg = "%" + terrororg + "%"
+	
+	if tstart == '':
+		tstart = 197000000001
+	else:
+		tstart = single_date_corrector(tstart)
+	
+	if tend == '':
+		tend = 201502170099
+	else:
+		tend = single_date_corrector(tend)
+	
+
+
+	theSQLstring = """SELECT t1.eventid, t1.city, t3.summary, t4.nkill, t2.country_txt, t5.gname, t6.weaptype1_txt
+	FROM locations t1,
+	  countrykey t2,
+	  comments t3,
+	  targets t4,
+	  attacks t5,
+	  weaponkey t6
+	WHERE t1.country = t2.country
+	AND t1.eventid = t3.eventid
+	AND t3.eventid = t4.eventid
+	AND t5.eventid = t4.eventid
+	AND t5.weaptype1 = t6.weaptype1
+	AND t2.country_txt ILIKE %s
+	AND t5.gname ILIKE (%s)
+	AND t3.eventid BETWEEN %s
+	AND %s;"""
+	theData = (country, terrororg, tstart, tend)
+	cursor.execute(theSQLstring, theData)
+	info = cursor.fetchall()
+	return info
 
 
