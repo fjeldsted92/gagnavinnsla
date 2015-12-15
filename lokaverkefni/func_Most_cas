@@ -35,3 +35,8 @@ def get_Attacks(A,cursor):
         tmp2.append(str(deaths[i])+" killed by "+str(name[i]) + " in "+ str(country[i]) + " on "+ str(date[i]) + " in a " + str(attack_type[i]) +".")
         
     return tmp2
+    
+    
+Set_Atta=Button(root, text = 'stilla',command =lambda: Flimit.set(Atta.get())).grid(row= 9, column =2)
+Go_Atta = Button(root, text = 'Finna', command =lambda: attack_window(Flimit.get(),cursor)).grid(row=9 ,column =3)
+
