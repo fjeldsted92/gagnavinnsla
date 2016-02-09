@@ -1,0 +1,90 @@
+close all  % Fyrrihluti verkefni 1 liðir 1 -2.
+clear all
+p0=linspace(0.006,0.038); % Bilið á Pa
+hold;
+A=[1 -1 -1 0 0 0; 0 1 0 -1 0 0; 0 0 1 0 -1 0; 0 0 0 1 1 -1; 2 1 0 1 0 2; 0 1 -1 1 -1 0];  % fylkið A lesið úr jöfnuni
+QA=2*10^(-5); 
+QB=4*10^(-5);
+K=128*1.002*10^(-3)/(pi*0.2^4); % Fasti sem við deilum í gegnum með í lið 1
+R=8*0.02*9.08/(pi^2*0.2^5);
+condition=cond(A);  % reiknum ástandstölu fylkisins  
+[L, U , P] =  lu(A); % PLU þáttum fylkið
+
+for i = 1:100
+    b=[0;QA;QB;0;p0(i)/K;0]; %b vigur fyrir hvert gildi á b
+    C=L\(P*b); % Notum lu þáttunina til að leysa fyrir hvert gildi 
+    X=U\C;   % og teiknum svo upp Q gildinn fyrir hvert Pa
+    plot(p0(i),X(1),'+',p0(i),X(2),'+',p0(i),X(3),'+',p0(i),X(4),'+',p0(i),X(5),'+',p0(i),X(6),'+'); % teiknum niðurstöðuna fyrir hverja ítrun.
+    
+ 
+end
+
+  legend('Q1','Q2','Q3','Q4','Q5','Q6')
+  disp('P fylkið');
+  disp(P)
+  disp('U fylkið');
+  disp(U)
+  disp('L fylkið');
+  disp(L)
+
+  fprintf('Ástands talan er : %d \n', condition);
+  fprintf('Þetta er tala afstærðargráðuni 10^1 þannig að hámarksfjöldi markverða aukastafa er 15 \n');
+close all
+clear all
+%Seinni hluti verkefnisins liðir 3 til 6
+
+QA=2*10^(-5); 
+QB=4*10^(-5);
+X0=[0;0;0;0;0;0];
+R=8*0.02*998/(pi^2*0.2^5);
+P0=0.5;
+P=linspace(0.5,2);
+m=[1,2,3,4,5,6];
+
+hold;
+gisk=0.1*ones(6,1);
+Acc=false;
+while Acc==false;
+
+f=root6d(gisk); % fall sem inniheldur vigurform F(q)=0.
+
+DFX=Df(gisk);
+Xn=DFX \transpose(-f);
+if abs(Xn) <10^(-7)
+    Acc=true;
+end
+gisk=Xn+gisk;
+end
+res=gisk;
+forwarderror=norm(root6d(res));
+Z=@root6d;
+x=fsolve(Z,X0); % notum matlab til þess að reikna rót á fallið og berum saman við okkar niðurstöðu.
+backwarderror=norm(res-x);
+
+
+Pa=linspace(0.5, 2);
+
+gisk2=0.1*ones(6,1);
+for i = 1 : 100  % For lykkja sem Reikna rót jöfnuhnneppisins fyrir breytilegt P0
+    Acc=false;
+    while Acc==false;
+    f=VarP(gisk2,Pa(i)); % fall sem reikna Vigurinn Q þar sem pa er þrýstingurinn.
+
+    DFX=Df(gisk2); % fall sem reiknar Jakóbí fylkið fyrir Q
+    Xn=DFX \transpose(-f);  % leysum 
+    gisk2=Xn+gisk2;  
+    if abs(Xn) <10^(-7) % reiknum fyrir 6 stafa nákvæmni ef Xn er orðinn minni en -10^7
+    Acc=true;
+    end
+    
+    end
+    plot(Pa(i),gisk2(1),'*',Pa(i),gisk2(2),'*',Pa(i),gisk2(3),'*',Pa(i),gisk2(4),'*',Pa(i),gisk2(5),'*',Pa(i),gisk2(6),'*')
+    gisk2=0.1*ones(6,1);
+end
+legend('Q1','Q2','Q3','Q4','Q5','Q6')
+fprintf('Lausn á Q þegar P0= 05 \n')
+for i =1:6
+fprintf('Q%d :%d \n',m(i) , res(i));
+end
+fprintf('framvirk skekkjan fyirir Q: %d \n', forwarderror)
+fprintf('afturvirk skekkja fyrir Q: %d \n', backwarderror)
