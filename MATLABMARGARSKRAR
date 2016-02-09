@@ -1,4 +1,4 @@
-% MAIN FALL
+%main
 close all
 clear all
 QA=2*10^(-5); 
@@ -7,26 +7,40 @@ X0=[0;0;0;0;0;0];
 R=8*0.02*998/(pi^2*0.2^5);
 P0=0.5;
 P=linspace(0.5,2);
-% Reiknum lausn á Jöfnuhneppinu með fsolve
-Z=@root6d;
-x=fsolve(Z,X0);
 
+
+hold;
 gisk=0.1*ones(6,1);
-for i = 1 : 5;
+for i = 1 : 15;
 
-f=root6d(gisk);
+f=root6d(gisk); % fall sem inniheldur vigurform F(q)=0.
 
 DFX=Df(gisk);
 Xn=DFX \transpose(-f);
 gisk=Xn+gisk;
 end
 res=gisk;
-%Pa=linspace(0.5, 2)
+Forwarderror=norm(res);
+Z=@root6d;
+x=fsolve(Z,res);
+backwarderror=norm(res-x);
 
-%for i = 1 : 100
-%    for j =1 : 10
 
-%
+Pa=linspace(0.5, 2);
+
+gisk2=0.1*ones(6,1);
+for i = 1 : 100  % For lykkja sem 
+    for j =1 : 10
+    f=VarP(gisk2,Pa(i)); % fall sem reikna Vigurinn Q þar sem pa er þrýstingurinn.
+
+    DFX=Df(gisk2); % fall sem reiknar Jakóbí fylkið fyrir Q
+    Xn=DFX \transpose(-f);  % leysum 
+    gisk2=Xn+gisk2;  
+    end
+    plot(Pa(i),gisk2(1),'*',Pa(i),gisk2(2),'*',Pa(i),gisk2(3),'*',Pa(i),gisk2(4),'*',Pa(i),gisk2(5),'*',Pa(i),gisk2(6),'*')
+    gisk2=0.1*ones(6,1);
+end
+legend('Q1','Q2','Q3','Q4','Q5','Q6')
 
 
 %%%%VARP p FALL með breytilegum P
