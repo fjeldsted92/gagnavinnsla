@@ -1,25 +1,43 @@
-close all  % Fyrrihluti verkefni 1 liðir 1 -2.
+%Lagstreymi
+close all
 clear all
+clc
+
 p0=linspace(0.006,0.038); % Bilið á Pa
 hold;
-A=[1 -1 -1 0 0 0; 0 1 0 -1 0 0; 0 0 1 0 -1 0; 0 0 0 1 1 -1; 2 1 0 1 0 2; 0 1 -1 1 -1 0];  % fylkið A lesið úr jöfnuni
+
+%Búum til jöfnuhneppi út frá jöfnu (1) og (3) af vinnuseðli
+A=[1 -1 -1 0 0 0;
+   0 1 0 -1 0 0;
+   0 0 1 0 -1 0;
+   0 0 0 1 1 -1;
+   2 1 0 1 0 2;
+   0 1 -1 1 -1 0];
+
+%Skilgreinum fasta sem þarf til útreikninga
 QA=2*10^(-5); 
 QB=4*10^(-5);
 K=128*1.002*10^(-3)/(pi*0.2^4); % Fasti sem við deilum í gegnum með í lið 1
 R=8*0.02*9.08/(pi^2*0.2^5);
-condition=cond(A);  % reiknum ástandstölu fylkisins  
+
+%Finnum ástandstölu fylkisins
+condition=cond(A);  
+
+%PA=LU þáttum fylkið A;
 [L, U , P] =  lu(A); % PLU þáttum fylkið
 
+%Leyst fyrir q og plottað upp 
 for i = 1:100
     b=[0;QA;QB;0;p0(i)/K;0]; %b vigur fyrir hvert gildi á b
     C=L\(P*b); % Notum lu þáttunina til að leysa fyrir hvert gildi 
     X=U\C;   % og teiknum svo upp Q gildinn fyrir hvert Pa
     plot(p0(i),X(1),'+',p0(i),X(2),'+',p0(i),X(3),'+',p0(i),X(4),'+',p0(i),X(5),'+',p0(i),X(6),'+'); % teiknum niðurstöðuna fyrir hverja ítrun.
-    
- 
 end
+legend('Q1','Q2','Q3','Q4','Q5','Q6')
+title('Lagstreymi')
+xlabel('Þrýstingur [Pa]')
+ylabel('Straumhraði [m/s^2]')
 
-  legend('Q1','Q2','Q3','Q4','Q5','Q6')
   disp('P fylkið');
   disp(P)
   disp('U fylkið');
@@ -27,16 +45,15 @@ end
   disp('L fylkið');
   disp(L)
 
-  fprintf('Ástands talan er : %d \n', condition);
+  fprintf('Ástandstalan er : %d \n', condition);
   fprintf('Þetta er tala afstærðargráðuni 10^1 þannig að hámarksfjöldi markverða aukastafa er 15 \n');
-
-%%%%%%%% SEINNI HLUTI %%%%%
-
-
+%%
+%Iðjustreymi
 close all
 clear all
-%Seinni hluti verkefnisins liðir 3 til 6
+clc
 
+%Skilgreinum fasta sem þarf til útreikninga
 QA=2*10^(-5); 
 QB=4*10^(-5);
 X0=[0;0;0;0;0;0];
@@ -45,50 +62,62 @@ P0=0.5;
 P=linspace(0.5,2);
 m=[1,2,3,4,5,6];
 
+%Liður 3
+%Sjá fallið root6d sem inniheldur vigurfallið
+
+%Liður 4
+%Notum jacobian skipunina til þess að finna Jakóbí fylki af vigurfallinu F 
+syms q1 q2 q3 q4 q5 q6;
+J = jacobian([(q1-q2-q3),(q2-q4-QA),(q3-q5-QB),(q4+q5-q6),R/2-2*q1^2-q2^2-q3^2,q2^2+q4^2-q5^2-q3^2],[q1,q2,q3,q4,q5,q6]);
+display('Jacobifylki:')
+display(J)
+
+%Liður 5
+%
 hold;
 gisk=0.1*ones(6,1);
 Acc=false;
 while Acc==false;
-
-f=root6d(gisk); % fall sem inniheldur vigurform F(q)=0.
-
-DFX=Df(gisk);
-Xn=DFX \transpose(-f);
-if abs(Xn) <10^(-7)
-    Acc=true;
+    f=root6d(gisk); % fall sem inniheldur vigurform F(q)=0.
+    DFX=Df(gisk); % Jakóbí fylki með gildum úr upphafsgiski
+    Xn=DFX \transpose(-f); %
+    if abs(Xn) < 10^(-7)
+        Acc=true;
+    end
+    gisk=Xn+gisk;
 end
-gisk=Xn+gisk;
-end
+
 res=gisk;
 forwarderror=norm(root6d(res));
 Z=@root6d;
 x=fsolve(Z,X0); % notum matlab til þess að reikna rót á fallið og berum saman við okkar niðurstöðu.
 backwarderror=norm(res-x);
 
-
 Pa=linspace(0.5, 2);
-
 gisk2=0.1*ones(6,1);
-for i = 1 : 100  % For lykkja sem Reikna rót jöfnuhnneppisins fyrir breytilegt P0
+for i = 1 : 100  % For lykkja sem Reiknar rót jöfnuhnneppisins fyrir breytilegt P0
     Acc=false;
     while Acc==false;
-    f=VarP(gisk2,Pa(i)); % fall sem reikna Vigurinn Q þar sem pa er þrýstingurinn.
-
-    DFX=Df(gisk2); % fall sem reiknar Jakóbí fylkið fyrir Q
-    Xn=DFX \transpose(-f);  % leysum 
-    gisk2=Xn+gisk2;  
-    if abs(Xn) <10^(-7) % reiknum fyrir 6 stafa nákvæmni ef Xn er orðinn minni en -10^7
-    Acc=true;
-    end
-    
+        f=VarP(gisk2,Pa(i)); % fall sem reikna Vigurinn Q þar sem pa er þrýstingurinn.
+        DFX=Df(gisk2); % fall sem reiknar Jakóbí fylkið fyrir Q
+        Xn=DFX \transpose(-f);  % leysum 
+        gisk2=Xn+gisk2;  
+        if abs(Xn) <10^(-7) % reiknum fyrir 6 stafa nákvæmni ef Xn er orðinn minni en -10^7
+            Acc=true;
+        end
     end
     plot(Pa(i),gisk2(1),'*',Pa(i),gisk2(2),'*',Pa(i),gisk2(3),'*',Pa(i),gisk2(4),'*',Pa(i),gisk2(5),'*',Pa(i),gisk2(6),'*')
     gisk2=0.1*ones(6,1);
 end
 legend('Q1','Q2','Q3','Q4','Q5','Q6')
+title('Iðjustreymi')
+xlabel('Þrýstingur [Pa]')
+ylabel('Straumhraði [m/s^2]')
+
+
 fprintf('Lausn á Q þegar P0= 05 \n')
 for i =1:6
-fprintf('Q%d :%d \n',m(i) , res(i));
+    fprintf('Q%d :%d \n',m(i) , res(i));
 end
-fprintf('framvirk skekkjan fyirir Q: %d \n', forwarderror)
-fprintf('afturvirk skekkja fyrir Q: %d \n', backwarderror)
+fprintf('Framvirk skekkja fyrir Q: %d \n', forwarderror)
+fprintf('Afturvirk skekkja fyrir Q: %d \n', backwarderror)
