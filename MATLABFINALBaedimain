@@ -100,7 +100,7 @@ for i = 1 : 100  % For lykkja sem Reiknar rót jöfnuhnneppisins fyrir breytileg
     while Acc==false;
         f=VarP(gisk2,Pa(i)); % fall sem reikna Vigurinn Q þar sem pa er þrýstingurinn.
         DFX=Df(gisk2); % fall sem reiknar Jakóbí fylkið fyrir Q
-        Xn=DFX \transpose(-f);  % leysum 
+        Xn=DFX \transpose(-f);  % leysum Xn með aðferð newtons (Transpose er vegna þess að Xn er línuvigur hjá okkur)
         gisk2=Xn+gisk2;  
         if abs(Xn) <10^(-7) % reiknum fyrir 6 stafa nákvæmni ef Xn er orðinn minni en -10^7
             Acc=true;
