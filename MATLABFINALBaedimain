@@ -29,8 +29,8 @@ condition=cond(A);
 %Leyst fyrir q og plottað upp 
 for i = 1:100
     b=[0;QA;QB;0;p0(i)/K;0]; %b vigur fyrir hvert gildi á b
-    C=L\(P*b); % Notum lu þáttunina til að leysa fyrir hvert gildi 
-    X=U\C;   % og teiknum svo upp Q gildinn fyrir hvert Pa
+    C=L\(P*b);               % Notum lu þáttunina til að leysa fyrir hvert gildi 
+    X=U\C;                   % og teiknum svo upp Q gildinn fyrir hvert Pa
     plot(p0(i),X(1),'+',p0(i),X(2),'+',p0(i),X(3),'+',p0(i),X(4),'+',p0(i),X(5),'+',p0(i),X(6),'+'); % teiknum niðurstöðuna fyrir hverja ítrun.
 end
 legend('Q1','Q2','Q3','Q4','Q5','Q6')
@@ -78,9 +78,9 @@ hold;
 gisk=0.1*ones(6,1);
 Acc=false;
 while Acc==false;
-    f=root6d(gisk); % fall sem inniheldur vigurform F(q)=0.
-    DFX=Df(gisk); % Jakóbí fylki með gildum úr upphafsgiski
-    Xn=DFX \transpose(-f); %
+    f=root6d(gisk);           % fall sem inniheldur vigurform F(q)=0.
+    DFX=Df(gisk);             % Jakóbí fylki með gildum úr upphafsgiski
+    Xn=DFX \transpose(-f);    % útkoma úr Df\A = -f
     if abs(Xn) < 10^(-7)
         Acc=true;
     end
@@ -90,19 +90,19 @@ end
 res=gisk;
 forwarderror=norm(root6d(res));
 Z=@root6d;
-x=fsolve(Z,X0); % notum matlab til þess að reikna rót á fallið og berum saman við okkar niðurstöðu.
+x=fsolve(Z,X0);                   % notum matlab til þess að reikna rót á fallið og berum saman við okkar niðurstöðu.
 backwarderror=norm(res-x);
 
 Pa=linspace(0.5, 2);
 gisk2=0.1*ones(6,1);
-for i = 1 : 100  % For lykkja sem Reiknar rót jöfnuhnneppisins fyrir breytilegt P0
+for i = 1 : 100                   % For lykkja sem Reiknar rót jöfnuhnneppisins fyrir breytilegt P0
     Acc=false;
     while Acc==false;
-        f=VarP(gisk2,Pa(i)); % fall sem reikna Vigurinn Q þar sem pa er þrýstingurinn.
-        DFX=Df(gisk2); % fall sem reiknar Jakóbí fylkið fyrir Q
-        Xn=DFX \transpose(-f);  % leysum Xn með aðferð newtons (Transpose er vegna þess að Xn er línuvigur hjá okkur)
+        f=VarP(gisk2,Pa(i));      %fall sem reikna Vigurinn Q þar sem pa er þrýstingurinn.
+        DFX=Df(gisk2);            % fall sem reiknar Jakóbí fylkið fyrir Q
+        Xn=DFX \transpose(-f);    % leysum Xn með aðferð newtons (Transpose er vegna þess að Xn er línuvigur hjá okkur)
         gisk2=Xn+gisk2;  
-        if abs(Xn) <10^(-7) % reiknum fyrir 6 stafa nákvæmni ef Xn er orðinn minni en -10^7
+        if abs(Xn) <10^(-7)       % reiknum fyrir 6 stafa nákvæmni ef Xn er orðinn minni en -10^7
             Acc=true;
         end
     end
