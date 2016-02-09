@@ -24,7 +24,7 @@ R=8*0.02*9.08/(pi^2*0.2^5);
 condition=cond(A);  
 
 %PA=LU þáttum fylkið A;
-[L, U , P] =  lu(A); % PLU þáttum fylkið
+[L, U , P] =  lu(A);
 
 %Leyst fyrir q og plottað upp 
 for i = 1:100
@@ -46,7 +46,7 @@ ylabel('Straumhraði [m/s^2]')
   disp(L)
 
   fprintf('Ástandstalan er : %d \n', condition);
-  fprintf('Þetta er tala afstærðargráðuni 10^1 þannig að hámarksfjöldi markverða aukastafa er 15 \n');
+  fprintf('Þetta er tala af stærðargráðuni 10^1 þannig að hámarksfjöldi markverða aukastafa er 15 \n');
 %%
 %Iðjustreymi
 close all
@@ -79,7 +79,7 @@ gisk=0.1*ones(6,1);
 Acc=false;
 while Acc==false;
     f=root6d(gisk);           % fall sem inniheldur vigurform F(q)=0.
-    DFX=Df(gisk);             % Jakóbí fylki með gildum úr upphafsgiski
+    DFX=Df(gisk);             % Jacobifylki með gildum úr upphafsgiski
     Xn=DFX \transpose(-f);    % útkoma úr Df\A = -f
     if abs(Xn) < 10^(-7)
         Acc=true;
@@ -95,7 +95,7 @@ backwarderror=norm(res-x);
 
 Pa=linspace(0.5, 2);
 gisk2=0.1*ones(6,1);
-for i = 1 : 100                   % For lykkja sem Reiknar rót jöfnuhnneppisins fyrir breytilegt P0
+for i = 1 : 100                   % For-lykkja sem Reiknar rót jöfnuhnneppisins fyrir breytilegt P0
     Acc=false;
     while Acc==false;
         f=VarP(gisk2,Pa(i));      %fall sem reikna Vigurinn Q þar sem pa er þrýstingurinn.
