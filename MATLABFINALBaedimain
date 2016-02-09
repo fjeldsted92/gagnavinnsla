@@ -29,6 +29,10 @@ end
 
   fprintf('Ástands talan er : %d \n', condition);
   fprintf('Þetta er tala afstærðargráðuni 10^1 þannig að hámarksfjöldi markverða aukastafa er 15 \n');
+
+%%%%%%%% SEINNI HLUTI %%%%%
+
+
 close all
 clear all
 %Seinni hluti verkefnisins liðir 3 til 6
