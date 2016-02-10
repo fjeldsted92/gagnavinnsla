@@ -46,7 +46,7 @@ ylabel('Straumhraði [m/s^2]')
   disp(L)
 
   fprintf('Ástandstalan er : %d \n', condition);
-  fprintf('Þetta er tala af stærðargráðuni 10^1 þannig að hámarksfjöldi markverða aukastafa er 15 \n');
+  fprintf('Þetta er tala af stærðargráðuni 10^0 þannig að hámarksfjöldi markverða aukastafa er 16 \n');
 %%
 %Iðjustreymi
 close all
