@@ -28,9 +28,6 @@ C=ATA\B;
 Yaprox=(C(1)+C(2)./T+C(3)./T.^2);
 Yaprox2=(C(1)+C(2)./T+C(3)./T.^2);
 
-plot(T,Y,T,exp(Yaprox));
-figure
-plot(T,tildaY,T,Yaprox2);
 
 Err=0;
 for i =1:9
